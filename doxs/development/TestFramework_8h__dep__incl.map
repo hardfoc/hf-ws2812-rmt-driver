@@ -1,5 +1,5 @@
 <map id="examples/esp32/main/TestFramework.h" name="examples/esp32/main/TestFramework.h">
-<area shape="rect" id="Node000001" title="Shared testing framework for ESP32&#45;C6 comprehensive test suites." alt="" coords="39,5,206,45"/>
-<area shape="rect" id="Node000002" href="$WS2812ComprehensiveTest_8cpp.html" title="Comprehensive test suite for WS2812 driver on ESP32&#45;C6." alt="" coords="5,93,240,133"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="125,59,125,93,120,93,120,59"/>
+<area shape="rect" id="Node000001" title="Shared testing framework for ESP32&#45;C6 comprehensive test suites." alt="" coords="39,5,205,50"/>
+<area shape="rect" id="Node000002" href="$WS2812ComprehensiveTest_8cpp.html" title="Comprehensive test suite for WS2812 driver on ESP32&#45;C6." alt="" coords="5,98,239,143"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="124,64,124,99,120,97,120,68"/>
 </map>

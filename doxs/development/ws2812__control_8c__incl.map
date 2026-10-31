@@ -1,30 +1,30 @@
 <map id="src/ws2812_control.c" name="src/ws2812_control.c">
-<area shape="rect" id="Node000001" title=" " alt="" coords="440,5,599,31"/>
-<area shape="rect" id="Node000002" href="$ws2812__control_8h.html" title="ESP&#45;IDF RMT backend for WS2812 / NeoPixel LED chains." alt="" coords="346,79,482,104"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="504,33,444,73,441,69,501,28"/>
-<area shape="rect" id="Node000004" title=" " alt="" coords="5,152,124,177"/>
-<area shape="poly" id="edge11_Node000001_Node000004" title=" " alt="" coords="469,33,385,54,289,81,190,116,106,149,104,144,188,111,288,76,383,49,468,28"/>
-<area shape="rect" id="Node000005" title=" " alt="" coords="148,152,291,177"/>
-<area shape="poly" id="edge12_Node000001_Node000005" title=" " alt="" coords="470,33,404,53,335,81,285,113,244,145,240,141,282,108,333,76,402,48,468,28"/>
-<area shape="rect" id="Node000006" title=" " alt="" coords="615,152,696,177"/>
-<area shape="poly" id="edge14_Node000001_Node000006" title=" " alt="" coords="524,30,533,65,542,85,553,102,581,126,612,144,610,149,578,131,549,106,537,87,528,67,519,32"/>
-<area shape="rect" id="Node000007" href="$led__strip__encoder_8h.html" title=" " alt="" coords="720,152,868,177"/>
-<area shape="poly" id="edge16_Node000001_Node000007" title=" " alt="" coords="529,29,557,65,576,85,598,102,654,129,712,146,710,151,652,134,595,106,573,89,553,69,525,33"/>
-<area shape="rect" id="Node000011" title=" " alt="" coords="608,79,711,104"/>
-<area shape="poly" id="edge13_Node000001_Node000011" title=" " alt="" coords="543,28,626,70,623,75,541,33"/>
-<area shape="rect" id="Node000012" title=" " alt="" coords="735,79,885,104"/>
-<area shape="poly" id="edge15_Node000001_Node000012" title=" " alt="" coords="567,28,751,73,749,78,565,33"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="486,152,590,177"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="435,102,507,143,505,147,433,106"/>
-<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="358,107,135,152,134,147,357,101"/>
-<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="384,107,265,150,263,145,382,102"/>
-<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="454,101,604,145,602,151,452,107"/>
-<area shape="poly" id="edge6_Node000002_Node000007" title=" " alt="" coords="476,101,720,147,719,152,475,107"/>
-<area shape="rect" id="Node000009" title=" " alt="" coords="457,225,528,251"/>
-<area shape="poly" id="edge10_Node000002_Node000009" title=" " alt="" coords="397,106,379,120,362,138,352,157,352,167,356,176,374,195,396,210,445,227,443,232,393,214,370,199,352,179,347,168,347,156,357,135,375,116,394,102"/>
-<area shape="rect" id="Node000010" title=" " alt="" coords="366,152,462,177"/>
-<area shape="poly" id="edge9_Node000002_Node000010" title=" " alt="" coords="417,104,417,138,411,138,411,104"/>
-<area shape="rect" id="Node000008" title=" " alt="" coords="715,225,873,251"/>
-<area shape="poly" id="edge7_Node000007_Node000008" title=" " alt="" coords="797,178,797,212,791,212,791,178"/>
-<area shape="poly" id="edge8_Node000007_Node000009" title=" " alt="" coords="746,180,542,228,541,223,745,175"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="438,5,595,33"/>
+<area shape="rect" id="Node000002" href="$ws2812__control_8h.html" title="ESP&#45;IDF RMT backend for WS2812 / NeoPixel LED chains." alt="" coords="344,81,479,109"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="500,32,443,74,441,70,495,35"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="5,157,124,184"/>
+<area shape="poly" id="edge11_Node000001_Node000004" title=" " alt="" coords="455,35,375,57,284,84,189,119,108,152,106,148,187,114,282,78,374,52,460,33"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="147,157,288,184"/>
+<area shape="poly" id="edge12_Node000001_Node000005" title=" " alt="" coords="457,35,397,55,332,83,284,115,244,148,241,144,281,111,330,79,396,50,462,33"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="611,157,691,184"/>
+<area shape="poly" id="edge14_Node000001_Node000006" title=" " alt="" coords="520,31,530,69,539,89,551,107,576,130,606,150,600,149,572,134,546,110,534,91,525,70,517,36"/>
+<area shape="rect" id="Node000007" href="$led__strip__encoder_8h.html" title=" " alt="" coords="715,157,862,184"/>
+<area shape="poly" id="edge16_Node000001_Node000007" title=" " alt="" coords="525,31,553,69,572,89,594,106,646,133,702,153,697,153,644,138,591,111,569,93,549,72,523,36"/>
+<area shape="rect" id="Node000011" title=" " alt="" coords="604,81,706,109"/>
+<area shape="poly" id="edge13_Node000001_Node000011" title=" " alt="" coords="542,31,620,73,615,74,541,36"/>
+<area shape="rect" id="Node000012" title=" " alt="" coords="729,81,880,109"/>
+<area shape="poly" id="edge15_Node000001_Node000012" title=" " alt="" coords="568,31,741,76,736,77,568,36"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="484,157,587,184"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="434,107,503,149,497,148,433,112"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="348,112,140,156,138,151,349,107"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="374,110,267,153,265,148,379,108"/>
+<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="454,107,599,152,593,153,454,112"/>
+<area shape="poly" id="edge6_Node000002_Node000007" title=" " alt="" coords="479,107,708,152,703,154,479,112"/>
+<area shape="rect" id="Node000009" title=" " alt="" coords="453,232,524,260"/>
+<area shape="poly" id="edge10_Node000002_Node000009" title=" " alt="" coords="394,108,374,126,358,145,349,164,349,174,353,183,370,202,391,216,441,237,435,236,389,221,367,206,349,186,344,175,344,163,354,142,371,122,389,110"/>
+<area shape="rect" id="Node000010" title=" " alt="" coords="364,157,459,184"/>
+<area shape="poly" id="edge9_Node000002_Node000010" title=" " alt="" coords="413,107,413,142,409,140,409,111"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="710,232,867,260"/>
+<area shape="poly" id="edge7_Node000007_Node000008" title=" " alt="" coords="790,183,791,218,786,215,787,187"/>
+<area shape="poly" id="edge8_Node000007_Node000009" title=" " alt="" coords="737,185,539,235,538,230,732,185"/>
 </map>
