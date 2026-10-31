@@ -27,7 +27,7 @@ Before installing the driver, ensure you have:
 
    ```bash
    cd your-project
-   git clone https://github.com/N3b3x/hf-ws2812-rmt-driver.git components/hf-ws2812-rmt
+   git clone https://github.com/hardfoc/hf-ws2812-rmt-driver.git components/hf-ws2812-rmt
    ```
 
    Or copy the entire driver directory into `components/hf-ws2812-rmt/`.
