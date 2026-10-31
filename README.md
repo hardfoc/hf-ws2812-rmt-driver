@@ -15,8 +15,8 @@ trees must not copy that pattern.
 
 [![C++](https://img.shields.io/badge/C%2B%2B-17-blue.svg)](https://en.cppreference.com/w/cpp/17)
 [![License](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
-[![CI](https://github.com/N3b3x/hf-ws2812-rmt-driver/actions/workflows/esp32-examples-build-ci.yml/badge.svg?branch=main)](https://github.com/N3b3x/hf-ws2812-rmt-driver/actions/workflows/esp32-examples-build-ci.yml)
-[![Docs](https://img.shields.io/badge/docs-GitHub%20Pages-blue)](https://n3b3x.github.io/hf-ws2812-rmt-driver/)
+[![CI](https://github.com/hardfoc/hf-ws2812-rmt-driver/actions/workflows/esp32-examples-build-ci.yml/badge.svg?branch=main)](https://github.com/hardfoc/hf-ws2812-rmt-driver/actions/workflows/esp32-examples-build-ci.yml)
+[![Docs](https://img.shields.io/badge/docs-GitHub%20Pages-blue)](https://hardfoc.github.io/hf-ws2812-rmt-driver/)
 
 ## 📚 Table of Contents
 1. [Overview](#-overview)
@@ -32,7 +32,7 @@ trees must not copy that pattern.
 
 ## 📦 Overview
 
-> **📖 [📚🌐 Live Complete Documentation](https://n3b3x.github.io/hf-ws2812-rmt-driver/)** - 
+> **📖 [📚🌐 Live Complete Documentation](https://hardfoc.github.io/hf-ws2812-rmt-driver/)** - 
 > Interactive guides, examples, and step-by-step tutorials
 
 **HF-WS2812** is an ESP32-specific driver for **WS2812** and compatible addressable RGB(W) LED strips (commonly known as NeoPixels). The driver uses the ESP32's RMT (Remote Control) peripheral to generate the precise timing signals required by WS2812 LEDs, providing hardware-accelerated LED control with minimal CPU overhead.
