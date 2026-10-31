@@ -1,24 +1,24 @@
 <map id="inc/led_strip_encoder.h" name="inc/led_strip_encoder.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="447,5,617,31"/>
-<area shape="rect" id="Node000002" href="$ws2812__control_8h.html" title="ESP&#45;IDF RMT backend for WS2812 / NeoPixel LED chains." alt="" coords="335,79,494,104"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="503,40,435,81,432,76,500,35"/>
-<area shape="rect" id="Node000010" href="$ws2812__control_8c.html" title=" " alt="" coords="453,152,611,177"/>
-<area shape="poly" id="edge11_Node000001_Node000010" title=" " alt="" coords="535,45,535,152,529,152,529,45"/>
-<area shape="rect" id="Node000011" href="$led__strip__encoder_8c.html" title=" " alt="" coords="569,79,740,104"/>
-<area shape="poly" id="edge10_Node000001_Node000011" title=" " alt="" coords="565,35,636,76,633,81,562,40"/>
-<area shape="rect" id="Node000003" href="$ws2812__cpp_8hpp.html" title="C++ wrapper for the HF&#45;WS2812 RMT LED driver." alt="" coords="275,152,429,177"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="397,116,364,154,360,150,393,113"/>
-<area shape="poly" id="edge9_Node000002_Node000010" title=" " alt="" coords="447,109,514,149,511,154,444,113"/>
-<area shape="rect" id="Node000004" href="$WS2812ComprehensiveTest_8cpp.html" title="Comprehensive test suite for WS2812 driver on ESP32&#45;C6." alt="" coords="5,225,240,265"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="307,184,179,228,177,223,305,179"/>
-<area shape="rect" id="Node000005" href="$ws2812__effects_8hpp.html" title="LED animation effects for WS2812 strips." alt="" coords="265,233,439,258"/>
-<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="355,191,355,232,349,232,349,191"/>
-<area shape="rect" id="Node000009" href="$ws2812__cpp_8cpp.html" title="WS2812Strip C++ wrapper implementation." alt="" coords="464,233,616,258"/>
-<area shape="poly" id="edge8_Node000003_Node000009" title=" " alt="" coords="393,180,514,230,512,235,391,185"/>
-<area shape="rect" id="Node000006" href="$ws2812__multi__animator_8hpp.html" title=" " alt="" coords="124,313,353,339"/>
-<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="326,268,257,315,254,311,323,264"/>
-<area shape="rect" id="Node000008" href="$ws2812__effects_8cpp.html" title="LED animation effects implementation." alt="" coords="377,313,551,339"/>
-<area shape="poly" id="edge7_Node000005_Node000008" title=" " alt="" coords="382,264,449,311,446,315,379,268"/>
-<area shape="rect" id="Node000007" href="$ws2812__multi__animator_8cpp.html" title="Multi&#45;strip animation coordinator implementation." alt="" coords="125,387,353,412"/>
-<area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="241,352,241,387,236,387,236,352"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="444,5,614,33"/>
+<area shape="rect" id="Node000002" href="$ws2812__control_8h.html" title="ESP&#45;IDF RMT backend for WS2812 / NeoPixel LED chains." alt="" coords="334,81,492,109"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="493,43,435,83,432,78,497,40"/>
+<area shape="rect" id="Node000010" href="$ws2812__control_8c.html" title=" " alt="" coords="450,157,607,184"/>
+<area shape="poly" id="edge11_Node000001_Node000010" title=" " alt="" coords="530,46,531,157,526,155,527,51"/>
+<area shape="rect" id="Node000011" href="$led__strip__encoder_8c.html" title=" " alt="" coords="567,81,736,109"/>
+<area shape="poly" id="edge10_Node000001_Node000011" title=" " alt="" coords="564,39,632,80,627,81,564,44"/>
+<area shape="rect" id="Node000003" href="$ws2812__cpp_8hpp.html" title="C++ wrapper for the HF&#45;WS2812 RMT LED driver." alt="" coords="274,157,426,184"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="394,119,363,158,359,154,390,122"/>
+<area shape="poly" id="edge9_Node000002_Node000010" title=" " alt="" coords="447,115,511,156,505,156,446,120"/>
+<area shape="rect" id="Node000004" href="$WS2812ComprehensiveTest_8cpp.html" title="Comprehensive test suite for WS2812 driver on ESP32&#45;C6." alt="" coords="5,232,239,277"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="297,192,184,234,181,229,301,188"/>
+<area shape="rect" id="Node000005" href="$ws2812__effects_8hpp.html" title="LED animation effects for WS2812 strips." alt="" coords="263,241,437,268"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="351,198,352,242,348,239,349,202"/>
+<area shape="rect" id="Node000009" href="$ws2812__cpp_8cpp.html" title="WS2812Strip C++ wrapper implementation." alt="" coords="461,241,612,268"/>
+<area shape="poly" id="edge8_Node000003_Node000009" title=" " alt="" coords="394,188,509,240,504,241,394,194"/>
+<area shape="rect" id="Node000006" href="$ws2812__multi__animator_8hpp.html" title=" " alt="" coords="124,325,352,353"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="322,277,257,327,255,322,317,279"/>
+<area shape="rect" id="Node000008" href="$ws2812__effects_8cpp.html" title="LED animation effects implementation." alt="" coords="376,325,548,353"/>
+<area shape="poly" id="edge7_Node000005_Node000008" title=" " alt="" coords="381,276,447,325,441,324,380,281"/>
+<area shape="rect" id="Node000007" href="$ws2812__multi__animator_8cpp.html" title="Multi&#45;strip animation coordinator implementation." alt="" coords="124,401,352,428"/>
+<area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="240,367,240,402,236,399,236,370"/>
 </map>

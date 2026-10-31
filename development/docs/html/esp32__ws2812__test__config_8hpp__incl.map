@@ -1,5 +1,5 @@
 <map id="examples/esp32/main/esp32_ws2812_test_config.hpp" name="examples/esp32/main/esp32_ws2812_test_config.hpp">
-<area shape="rect" id="Node000001" title="Hardware configuration for WS2812 driver on ESP32&#45;C6." alt="" coords="5,5,233,45"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="86,93,153,119"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="122,46,122,79,117,79,117,46"/>
+<area shape="rect" id="Node000001" title="Hardware configuration for WS2812 driver on ESP32&#45;C6." alt="" coords="5,5,233,50"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="86,98,152,126"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="121,48,121,83,117,81,117,52"/>
 </map>

@@ -631,7 +631,7 @@
   },"90": {
     "doc": "🛠️ Installation",
     "title": "Option 1: ESP-IDF Component (Recommended)",
-    "content": ". | Add the component to your project’s components/ directory: . | 1 2 . | cd your-project git clone https://github.com/N3b3x/hf-ws2812-rmt-driver.git components/hf-ws2812-rmt . | . Or copy the entire driver directory into components/hf-ws2812-rmt/. | Configure via menuconfig: . | 1 . | idf.py menuconfig . | . Navigate to: Component Config → HF-ESP32-WS2812-RMT . Configure: . | LED Type (RGB or RGBW) | Number of LEDs | GPIO pin | RMT channel | Timing parameters | Default brightness | . | Include in your component’s CMakeLists.txt: . | 1 2 3 4 . | idf_component_register( REQUIRES hf-ws2812-rmt # ... other settings ) . | . | . ",
+    "content": ". | Add the component to your project’s components/ directory: . | 1 2 . | cd your-project git clone https://github.com/hardfoc/hf-ws2812-rmt-driver.git components/hf-ws2812-rmt . | . Or copy the entire driver directory into components/hf-ws2812-rmt/. | Configure via menuconfig: . | 1 . | idf.py menuconfig . | . Navigate to: Component Config → HF-ESP32-WS2812-RMT . Configure: . | LED Type (RGB or RGBW) | Number of LEDs | GPIO pin | RMT channel | Timing parameters | Default brightness | . | Include in your component’s CMakeLists.txt: . | 1 2 3 4 . | idf_component_register( REQUIRES hf-ws2812-rmt # ... other settings ) . | . | . ",
     "url": "/hf-ws2812-rmt-driver/development/docs/installation/#option-1-esp-idf-component-recommended",
     
     "relUrl": "/docs/installation/#option-1-esp-idf-component-recommended"
