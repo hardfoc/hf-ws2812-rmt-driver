@@ -12,15 +12,15 @@ This branch contains the versioned documentation for this repository.
 
 ## Access
 
-- **Latest**: [https://N3b3x.github.io/hf-ws2812-rmt-driver/](https://N3b3x.github.io/hf-ws2812-rmt-driver/)
-- **All Versions**: [https://N3b3x.github.io/hf-ws2812-rmt-driver/version_selector.html](https://N3b3x.github.io/hf-ws2812-rmt-driver/version_selector.html)
+- **Latest**: [https://hardfoc.github.io/hf-ws2812-rmt-driver/](https://hardfoc.github.io/hf-ws2812-rmt-driver/)
+- **All Versions**: [https://hardfoc.github.io/hf-ws2812-rmt-driver/version_selector.html](https://hardfoc.github.io/hf-ws2812-rmt-driver/version_selector.html)
 
 ## Current Version
 
 - **Version**: development
 - **Type**: development
-- **Deployed**: 2026-08-31T01:00:48Z
-- **Commit**: 5fb890f0e2e666f63ba18f7f70477d8dae6c684b
+- **Deployed**: 2026-10-31T08:21:19Z
+- **Commit**: 17db8f8b78763b101f9a4e8d7fc5bf9a631588db
 
 ---
 
