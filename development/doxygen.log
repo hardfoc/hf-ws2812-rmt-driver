@@ -1,5 +1,5 @@
-warning: ignoring unsupported tag 'PAGE_OUTLINE_PANEL' at line 1765, file /tmp/doxyfile.M5mrav
-warning: Tag 'DOT_TRANSPARENT' at line 2788 of file '/tmp/doxyfile.M5mrav' has become obsolete.
+warning: ignoring unsupported tag 'PAGE_OUTLINE_PANEL' at line 1765, file /tmp/doxyfile.bhUFpY
+warning: Tag 'DOT_TRANSPARENT' at line 2788 of file '/tmp/doxyfile.bhUFpY' has become obsolete.
          To avoid this warning please remove this line from your configuration file or upgrade it using "doxygen -u"
 /home/runner/work/hf-ws2812-rmt-driver/hf-ws2812-rmt-driver/examples/esp32/scripts/README.md:2: warning: found more than one \mainpage comment block! (first occurrence: /home/runner/work/hf-ws2812-rmt-driver/hf-ws2812-rmt-driver/examples/esp32/README.md, line 1), Skipping current block!
 /home/runner/work/hf-ws2812-rmt-driver/hf-ws2812-rmt-driver/examples/esp32/scripts/tests/README.md:1: warning: found more than one \mainpage comment block! (first occurrence: /home/runner/work/hf-ws2812-rmt-driver/hf-ws2812-rmt-driver/examples/esp32/README.md, line 1), Skipping current block!
