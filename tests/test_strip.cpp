@@ -178,3 +178,27 @@ TEST_CASE("RmtTx::TransmitWs2812 uses WS2812B timing at 10 MHz, MSB first") {
   CHECK_EQ(s.last_bytes_config.bit1.duration0, 8U); // 800 ns
   CHECK_EQ(s.last_bytes_config.bit1.duration1, 5U); // 500 ns
 }
+
+// WS2812B datasheet, "Data transfer time": T0H 0.4 us, T1H 0.8 us, T0L 0.85 us, T1L 0.45 us, each
+// +-150 ns. The Kconfig defaults are ticks of 100 ns and must land inside those windows.
+TEST_CASE("Kconfig default timing is inside the WS2812B windows at 100 ns per tick") {
+  auto in = [](unsigned ticks, unsigned nominal_ns) {
+    const unsigned ns = ticks * 100;
+    return ns + 150 >= nominal_ns && ns <= nominal_ns + 150;
+  };
+  CHECK(in(WS2812_T0H, 400));
+  CHECK(in(WS2812_T1H, 800));
+  CHECK(in(WS2812_T0L, 850));
+  CHECK(in(WS2812_T1L, 450));
+
+  fake_rmt::reset();
+  WS2812Strip strip(GPIO_NUM_8); // every other argument from Kconfig
+  strip.SetPixel(0, 0x00FF00);   // green: the first 8 bits on the wire are ones
+  REQUIRE(strip.Show() == ESP_OK);
+  const auto& sym = fake_rmt::state().last_symbols;
+  REQUIRE(sym.size() > 8U);
+  CHECK(in(sym[0].duration0, 800));
+  CHECK(in(sym[0].duration1, 450));
+  CHECK(in(sym[8].duration0, 400));
+  CHECK(in(sym[8].duration1, 850));
+}
