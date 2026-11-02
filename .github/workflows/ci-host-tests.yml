@@ -42,3 +42,8 @@ jobs:
 
       - name: Test
         run: ctest --test-dir build-host --output-on-failure
+
+      - name: Install and find_package
+        run: |
+          cmake --install build-host --prefix "$PWD/build-host/_install"
+          cmake -S tests/install -B build-host/_consumer -DCMAKE_PREFIX_PATH="$PWD/build-host/_install"
