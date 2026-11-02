@@ -21,7 +21,7 @@ apps:
   # Comprehensive Test Suite
   # --------------------------------------------------------------------------
   ws2812_comprehensive_test:
-    description: "Comprehensive WS2812 driver test suite covering all functionality"
+    description: "Test application scaffold: prints the driver version and runs a placeholder test; no LED output yet"
     source_file: "WS2812ComprehensiveTest.cpp"
     category: "test"
     idf_versions: ["release/v5.5"]
