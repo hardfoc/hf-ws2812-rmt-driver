@@ -31,8 +31,9 @@ WS2812Strip make_status_strip() {
 // --8<-- [start:pixels]
 esp_err_t show_gradient(WS2812Strip& strip) {
   const uint32_t n = strip.Length();
+  const uint32_t last = n > 1 ? n - 1 : 1;
   for (uint32_t i = 0; i < n; ++i) {
-    const auto level = static_cast<uint8_t>(255 * i / (n - 1));
+    const auto level = static_cast<uint8_t>(255 * i / last);
     strip.SetPixel(i, Grb(level, 0, 255 - level)); // blue to red
   }
   return strip.Show(); // nothing reaches the LEDs until Show()
@@ -56,8 +57,8 @@ esp_err_t grow(WS2812Strip& strip) {
 
 // --8<-- [start:timings]
 void use_ws2812_original_timing(WS2812Strip& strip) {
-  // WS2812 (not B): T0H 350 ns, T1H 700 ns, T0L 800 ns, T1L 600 ns.
-  strip.SetTimings(4, 7, 8, 6); // ticks of 100 ns; 350 ns rounds to 400 ns, within +-150 ns
+  // 4, 8, 9, 5 already fit both parts. To centre on the WS2812's nominal 350 / 700 / 800 / 600 ns:
+  strip.SetTimings(4, 7, 8, 6); // T0H, T1H, T0L, T1L in ticks of 100 ns
 }
 // --8<-- [end:timings]
 
