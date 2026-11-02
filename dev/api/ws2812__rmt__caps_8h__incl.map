@@ -1,0 +1,5 @@
+<map id="inc/ws2812_rmt_caps.h" name="inc/ws2812_rmt_caps.h">
+<area shape="rect" id="Node000001" title="RMT resources the driver requests per strip (shared by the C and C++ APIs)." alt="" coords="5,5,180,31"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="33,79,152,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="95,31,95,65,90,65,90,31"/>
+</map>
