@@ -22,10 +22,10 @@ end marked DIN or with the arrow pointing away from the connector.
 
 | Setting | Value | Notes |
 | --- | --- | --- |
-| Peripheral | One RMT transmit channel | Chosen by ESP-IDF's RMT driver; the `channel` argument is ignored |
+| Peripheral | One RMT transmit channel | Chosen by ESP-IDF's RMT driver; the `channel` argument is unused |
 | GPIO | Any output-capable GPIO | GPIO8 in the examples (ESP32-C6) |
 | Resolution | 10 MHz, 100 ns per tick | Fixed by `WS2812Strip` |
-| Symbol memory | 64 symbols, no DMA | Refilled by interrupt while a frame is sent |
+| Symbol memory | One block (64 symbols on ESP32/S2, 48 on S3/C3/C6/H2), no DMA | Refilled by interrupt while a frame is sent |
 | Output level | 3.3 V | Below the WS2812B's 3.5 V high threshold at 5 V |
 
 ## Signal
@@ -41,12 +41,12 @@ through DOUT, reshaped. A low line for longer than the reset time latches the ne
 | T0L, 0 bit low | 0.85 µs ±150 ns | 9: 0.9 µs |
 | T1L, 1 bit low | 0.45 µs ±150 ns | 5: 0.5 µs |
 | TH + TL | 1.25 µs ±600 ns | 1.3 µs |
-| Reset, line low | more than 50 µs | not sent ([why](timing.md#the-reset-gap)) |
-| Bit order | G7 ... G0, R7 ... R0, B7 ... B0 | MSB of the value first |
+| Reset, line low | more than 50 µs (WS2812B-V5: at least 280 µs) | 300 µs after every frame ([reset](timing.md#the-reset-gap)) |
+| Bit order | G7 ... G0, R7 ... R0, B7 ... B0 | Green byte first from a `0xRRGGBB` pixel, MSB first |
 
 The original WS2812 specifies 0.35, 0.7, 0.8 and 0.6 µs, each ±150 ns, and the same reset and order; the
-driver values above fall inside both parts' windows. The driver column is what the examples on this site pass
-to the constructor, not the Kconfig default ([Configuration](configuration.md)).
+driver values above fall inside both parts' windows. The driver column is the Kconfig default and what the
+examples on this site pass to the constructor ([Configuration](configuration.md)).
 
 ```mermaid
 sequenceDiagram
@@ -56,7 +56,7 @@ sequenceDiagram
     E->>L0: 24 bits for LED 0, then 24 for LED 1
     L0->>L0: keep the first 24 bits
     L0->>L1: forward the rest through DOUT
-    E->>L0: line low for more than 50 µs
+    E->>L0: reset: line low for 300 µs
     L0->>L0: latch: new colour shows
     L1->>L1: latch: new colour shows
 ```

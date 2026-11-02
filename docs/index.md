@@ -33,7 +33,8 @@ Interface
 :   One data line, NRZ at 800 kbit/s; 24 bits per LED, green-red-blue, MSB first
 
 Bit timing
-:   T0H 0.4 µs, T1H 0.8 µs, T0L 0.85 µs, T1L 0.45 µs, each ±150 ns; reset: low for more than 50 µs
+:   T0H 0.4 µs, T1H 0.8 µs, T0L 0.85 µs, T1L 0.45 µs, each ±150 ns; reset: low for more than 50 µs (the driver
+    sends 300 µs, enough for the WS2812B-V5)
 
 Supply
 :   VDD 3.5 V to 5.3 V

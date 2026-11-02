@@ -31,6 +31,7 @@
 #include "driver/rmt_tx.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/queue.h"
+#include "ws2812_rmt_caps.h"
 
 namespace ws2812 {
 
@@ -49,42 +50,35 @@ namespace detail {
 //=============================================================================
 class RmtTx {
 public:
+  /** Channel memory requested by default, in symbols. */
+  static constexpr size_t kDefaultMemSymbols = WS2812_RMT_MEM_BLOCK_SYMBOLS;
+
   /**
    * @brief Create a Transmit channel.
    *
    * @param gpio           Output GPIO number.
    * @param resolution_hz  Clock resolution in Hz (max 40 MHz on ESP32‑C6).
-   * @param mem_symbols    Symbol memory per channel (in 32”bit words).
+   * @param mem_symbols    Symbol memory per channel (in 32-bit words); the default is one
+   *                       memory block of the target.
    * @param with_dma       Enable DMA mode for huge transfers.
    * @param queue_depth    Depth of internal Transmit queue.
    * @param clk_src        Clock source (default: RMT_CLK_SRC_DEFAULT).
-   * @param channel_id     [Optional] fixed channel (0‑3). Pass -1 for auto.
+   * @param channel_id     Unused: ESP-IDF v5 allocates the channel itself.
    */
-  explicit RmtTx(gpio_num_t gpio, uint32_t resolution_hz = 10'000'000, size_t mem_symbols = 64,
-                 bool with_dma = false, uint32_t queue_depth = 4,
-                 rmt_clock_source_t clk_src = RMT_CLK_SRC_DEFAULT, int channel_id = -1) {
-    constexpr char TAG[] = "RmtTx";
-
-    if (channel_id < 0) {
-      channel_id = 0;
-    }
-
-    rmt_tx_channel_config_t cfg = {};
-    cfg.gpio_num = gpio;
-    cfg.clk_src = clk_src;
-    cfg.mem_block_symbols = mem_symbols;
-    cfg.resolution_hz = resolution_hz;
-    cfg.trans_queue_depth = queue_depth;
-    cfg.flags.invert_out = false;
-    cfg.flags.with_dma = with_dma;
-
-    ESP_ERROR_CHECK(detail::log_if_error(rmt_new_tx_channel(&cfg, &handle_), TAG,
-                                         "failed to create TX channel"));
-    ESP_ERROR_CHECK(detail::log_if_error(rmt_enable(handle_), TAG, "enable TX"));
-
-    // Prepare a generic copy encoder (raw symbol streaming)
-    rmt_copy_encoder_config_t copy_cfg = {};
-    ESP_ERROR_CHECK(rmt_new_copy_encoder(&copy_cfg, &copy_encoder_));
+  explicit RmtTx(gpio_num_t gpio, uint32_t resolution_hz = 10'000'000,
+                 size_t mem_symbols = kDefaultMemSymbols, bool with_dma = false,
+                 uint32_t queue_depth = 4, rmt_clock_source_t clk_src = RMT_CLK_SRC_DEFAULT,
+                 int channel_id = -1) {
+    // ESP-IDF v5's RMT driver allocates channels itself: channel_id cannot be honoured.
+    (void)channel_id;
+    cfg_.gpio_num = gpio;
+    cfg_.clk_src = clk_src;
+    cfg_.mem_block_symbols = mem_symbols;
+    cfg_.resolution_hz = resolution_hz;
+    cfg_.trans_queue_depth = queue_depth;
+    cfg_.flags.invert_out = false;
+    cfg_.flags.with_dma = with_dma;
+    (void)Init(); // the result is kept in InitStatus(); no abort on failure
   }
 
   RmtTx(const RmtTx&) = delete;
@@ -94,6 +88,8 @@ public:
     *this = std::move(other);
   }
   RmtTx& operator=(RmtTx&& other) noexcept {
+    std::swap(cfg_, other.cfg_);
+    std::swap(init_err_, other.init_err_);
     std::swap(handle_, other.handle_);
     std::swap(copy_encoder_, other.copy_encoder_);
     std::swap(ws_encoder_, other.ws_encoder_);
@@ -101,12 +97,53 @@ public:
   }
 
   ~RmtTx() {
-    if (ws_encoder_)
-      rmt_del_encoder(ws_encoder_);
-    if (copy_encoder_)
-      rmt_del_encoder(copy_encoder_);
-    if (handle_)
-      rmt_disable(handle_), rmt_del_channel(handle_);
+    Release();
+  }
+
+  //-------------------------------------------------------------------------
+  /**
+   * @brief Create and enable the channel if that has not succeeded yet.
+   *
+   * The constructor calls this once. A failure (no free channel, invalid GPIO, no memory) no longer
+   * aborts: it is returned here and by InitStatus(), the object stays unusable (every transmit
+   * returns ESP_ERR_INVALID_STATE), and a later Init() retries.
+   *
+   * @return ESP_OK when the channel is ready, otherwise the ESP-IDF error.
+   */
+  esp_err_t Init() {
+    constexpr char TAG[] = "RmtTx";
+    if (handle_ != nullptr) {
+      return ESP_OK;
+    }
+    rmt_channel_handle_t channel = nullptr;
+    esp_err_t err = detail::log_if_error(rmt_new_tx_channel(&cfg_, &channel), TAG,
+                                         "failed to create TX channel");
+    if (err == ESP_OK) {
+      handle_ = channel;
+    }
+    if (err == ESP_OK) {
+      rmt_copy_encoder_config_t copy_cfg = {};
+      err = detail::log_if_error(rmt_new_copy_encoder(&copy_cfg, &copy_encoder_), TAG,
+                                 "failed to create copy encoder");
+    }
+    if (err == ESP_OK) {
+      err = detail::log_if_error(rmt_enable(handle_), TAG, "enable TX");
+    }
+    if (err != ESP_OK) {
+      Release();
+    }
+    init_err_ = err;
+    return err;
+  }
+
+  /** @brief Result of the last Init(): ESP_OK when the channel is ready. */
+  esp_err_t InitStatus() const {
+    return init_err_;
+  }
+
+  /** @brief True when the channel was created and enabled. */
+  bool IsReady() const {
+    return handle_ != nullptr;
   }
 
   //-------------------------------------------------------------------------
@@ -115,6 +152,9 @@ public:
    */
   esp_err_t Transmit(const rmt_symbol_word_t* symbols, size_t count,
                      TickType_t timeout = portMAX_DELAY) const {
+    if (handle_ == nullptr) {
+      return ESP_ERR_INVALID_STATE;
+    }
     rmt_transmit_config_t tx_cfg = {};
     tx_cfg.loop_count = 0;
     esp_err_t err =
@@ -132,7 +172,10 @@ public:
    * @param bit1  Symbol encoding logic‑1.
    */
   esp_err_t TransmitBytes(const uint8_t* data, size_t length, const rmt_symbol_word_t& bit0,
-                           const rmt_symbol_word_t& bit1, TickType_t timeout = portMAX_DELAY) {
+                          const rmt_symbol_word_t& bit1, TickType_t timeout = portMAX_DELAY) {
+    if (handle_ == nullptr) {
+      return ESP_ERR_INVALID_STATE;
+    }
     // Create a throw‑away bytes encoder (kept only for this call)
     rmt_bytes_encoder_config_t be_cfg = {};
     be_cfg.bit0 = bit0;
@@ -156,6 +199,9 @@ public:
    * Uses 10 MHz or faster resolution to achieve accurate timings.
    */
   esp_err_t TransmitWs2812(const uint8_t* grb, size_t length, TickType_t timeout = portMAX_DELAY) {
+    if (handle_ == nullptr) {
+      return ESP_ERR_INVALID_STATE;
+    }
     if (!ws_encoder_) {
       rmt_bytes_encoder_config_t ws_cfg = {};
       ws_cfg.bit0 = makeWs2812Bit0();
@@ -176,6 +222,22 @@ public:
   }
 
 private:
+  void Release() {
+    if (ws_encoder_) {
+      rmt_del_encoder(ws_encoder_);
+      ws_encoder_ = nullptr;
+    }
+    if (copy_encoder_) {
+      rmt_del_encoder(copy_encoder_);
+      copy_encoder_ = nullptr;
+    }
+    if (handle_) {
+      rmt_disable(handle_);
+      rmt_del_channel(handle_);
+      handle_ = nullptr;
+    }
+  }
+
   static constexpr rmt_symbol_word_t makeWs2812Bit0(uint32_t resolution_hz = 10'000'000) {
     // T0H=0.4 μs, T0L≈0.85 μs
     uint32_t ticks_h = (400'000'000ULL / resolution_hz + 9) / 10; // round‑nearest
@@ -192,6 +254,8 @@ private:
         .duration0 = (uint16_t)ticks_h, .level0 = 1, .duration1 = (uint16_t)ticks_l, .level1 = 0};
   }
 
+  rmt_tx_channel_config_t cfg_ = {};
+  esp_err_t init_err_ = ESP_ERR_INVALID_STATE;
   rmt_channel_handle_t handle_ = nullptr;
   rmt_encoder_handle_t copy_encoder_ = nullptr;
   rmt_encoder_handle_t ws_encoder_ = nullptr;

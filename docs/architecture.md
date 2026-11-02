@@ -56,9 +56,11 @@ memory from an interrupt.
 - **Symbols built in software, sent with a copy encoder.** `Show()` writes one `rmt_symbol_word_t` per bit into
   a buffer the strip owns, then the RMT copies them out. The timing is plain data, so `SetTimings()` takes effect
   at the next `Show()` and the host tests can check every pulse.
-- **One RMT channel per strip, created in the constructor.** A strip is ready as soon as it exists; `Begin()` is
-  kept for older code and returns `ESP_OK`. Failures to create the channel abort, through `ESP_ERROR_CHECK`
-  ([Troubleshooting](troubleshooting.md)).
+- **One RMT channel per strip, created in the constructor.** The channel takes one memory block of the target.
+  A failure to create it does not abort: `Begin()` returns the error and retries, and `Show()` returns
+  `ESP_ERR_INVALID_STATE` until the channel is up ([Troubleshooting](troubleshooting.md)).
+- **Wire order inside the driver.** Pixels are `0xRRGGBB`; `Show()` reorders to green, red, blue and appends the
+  reset symbol, so callers never pack for the wire.
 - **Brightness at send time.** Pixels are stored unscaled; brightness is applied while encoding, so dimming and
   restoring never loses colour resolution in the buffer.
 - **Effects are separate.** The strip knows nothing about animation. An animator draws one frame per `Tick()`
@@ -69,8 +71,8 @@ memory from an interrupt.
 ## The C interface
 
 [`inc/ws2812_control.h`](../inc/ws2812_control.h) is an older C interface for one strip whose length, LED type
-and timing are fixed by Kconfig. It does not share code with `WS2812Strip` and it currently sends the wrong data
-(see the warning in the [API guide](api-guide.md#the-c-interface)); use the C++ classes.
+and timing are fixed by Kconfig. It does not share code with `WS2812Strip`: it sends pixel bytes through
+`led_strip_encoder.c`, which appends the reset ([API guide](api-guide.md#the-c-interface)).
 
 ## Source map
 

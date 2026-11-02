@@ -15,6 +15,7 @@
 #include "esp_err.h"
 #include "led_strip_encoder.h"
 #include "sdkconfig.h"
+#include "ws2812_rmt_caps.h"
 #include <stdint.h>
 
 /**
@@ -56,7 +57,8 @@ extern "C" {
  * Each element of @ref leds describes one LED. The lower three bytes contain
  * the RGB value in the order R (byte 2), G (byte 1) and B (byte 0). When the
  * driver is configured for RGBW LEDs the most significant byte contains the
- * white channel value.
+ * white channel value. ws2812_write_leds() sends them in the order the LED
+ * reads them: green, red, blue, then white.
  */
 struct led_state {
   /** Array of packed color values for each LED. */
@@ -67,22 +69,25 @@ struct led_state {
  * @brief Initialise the RMT peripheral for WS2812 output.
  *
  * This function must be called once before any LED data is transmitted.
- * The GPIO and channel can be specified at runtime.
+ * On failure everything it allocated is released, so it can be called again.
  *
  * @param gpio_num GPIO connected to the LED strip.
- * @param channel  RMT channel to use.
- * @return ESP_OK on success or an error code from the ESP-IDF drivers.
+ * @param channel  Unused: ESP-IDF v5's RMT driver picks a free channel itself.
+ * @return ESP_OK on success, ESP_ERR_INVALID_STATE if already initialised, or
+ *         an error code from the ESP-IDF drivers.
  */
 esp_err_t ws2812_control_init(gpio_num_t gpio_num, int channel);
 
 /**
  * @brief Send LED colour data.
  *
- * The function blocks the calling task until the complete buffer has been
- * transmitted by the RMT peripheral.
+ * Sends every LED's colour (green, red, blue[, white], scaled by the
+ * brightness) with the Kconfig bit timing, then the reset code that latches
+ * the frame. Blocks the calling task until the frame has been transmitted.
  *
  * @param new_state Desired LED colours.
- * @return ESP_OK on success or an ESP-IDF error code.
+ * @return ESP_OK on success, ESP_ERR_INVALID_STATE before ws2812_control_init(),
+ *         or an ESP-IDF error code.
  */
 esp_err_t ws2812_write_leds(struct led_state new_state);
 

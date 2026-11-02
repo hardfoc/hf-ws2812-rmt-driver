@@ -3,141 +3,111 @@
 #include "driver/rmt_types.h"
 #include "esp_check.h"
 #include "esp_err.h"
+#include "esp_log.h"
 #include "freertos/FreeRTOS.h"
 #include "led_strip_encoder.h"
 
-// Configure these based on your project needs using menuconfig ********
-#define LED_RMT_TX_CHANNEL CONFIG_WS2812_LED_RMT_TX_CHANNEL
-#define LED_RMT_TX_GPIO CONFIG_WS2812_LED_RMT_TX_GPIO
-// ****************************************************
-
-#if CONFIG_WS2812_LED_TYPE_RGB
-#define BITS_PER_LED_CMD 24
-#elif CONFIG_WS2812_LED_TYPE_RGBW
-#define BITS_PER_LED_CMD 32
+#if CONFIG_WS2812_LED_TYPE_RGBW
+#define BYTES_PER_LED 4
+#else
+#define BYTES_PER_LED 3
 #endif
 
-#define LED_BUFFER_ITEMS (NUM_LEDS * BITS_PER_LED_CMD)
-
-// These values are determined by measuring pulse timing with logic analyzer and
-// adjusting to match datasheet.
-#define T0H CONFIG_WS2812_T0H // 0 bit high time
-#define T1H CONFIG_WS2812_T1H // 1 bit high time
-#define T0L CONFIG_WS2812_T0L // low time for either bit
-#define T1L CONFIG_WS2812_T1L
+// RMT resolution: one tick is 100 ns, the unit of the CONFIG_WS2812_T* values.
+#define WS2812_RMT_RESOLUTION_HZ (10 * 1000 * 1000)
 
 // Tag for log messages
 static const char* TAG = "NeoPixel WS2812 Driver";
 
-// This is the buffer which the hw peripheral will access while pulsing the
-// output pin
-static rmt_symbol_word_t g_led_data_buffer[LED_BUFFER_ITEMS];
-static gpio_num_t g_gpio = LED_RMT_TX_GPIO;
+// Pixel bytes in wire order (G, R, B[, W]); the LED strip encoder turns them into RMT symbols and
+// appends the reset code.
+static uint8_t g_led_bytes[NUM_LEDS * BYTES_PER_LED];
 static rmt_channel_handle_t g_handle = NULL;
 static rmt_encoder_handle_t g_encoder = NULL;
 
 // Global brightness scaling value
 static uint8_t g_brightness = CONFIG_WS2812_DEFAULT_BRIGHTNESS;
 
-/**
- * @brief Prepare the RMT buffer from an array of LED colours.
- *
- * @param new_state Colours to transmit to the LEDs.
- */
-static void setup_rmt_data_buffer(struct led_state new_state);
+static void release(void) {
+  if (g_encoder) {
+    rmt_del_encoder(g_encoder);
+    g_encoder = NULL;
+  }
+  if (g_handle) {
+    rmt_disable(g_handle);
+    rmt_del_channel(g_handle);
+    g_handle = NULL;
+  }
+}
 
-/**
- * @brief Initialise the RMT driver for WS2812 output.
- *
- * Must be called once before any LED data is transmitted. The
- * pin and channel can be chosen at runtime.
- *
- * @param gpio_num GPIO connected to the LED strip.
- * @param channel  RMT channel used for transmission.
- * @return ESP_OK on success or an ESP-IDF error code.
- */
 esp_err_t ws2812_control_init(gpio_num_t gpio_num, int channel) {
+  // ESP-IDF v5's RMT driver allocates channels itself; there is no way to request a number.
   (void)channel;
-  g_gpio = gpio_num;
+  if (g_handle != NULL) {
+    return ESP_ERR_INVALID_STATE; // already initialised
+  }
 
   rmt_tx_channel_config_t tx_cfg = {};
   tx_cfg.gpio_num = gpio_num;
   tx_cfg.clk_src = RMT_CLK_SRC_DEFAULT;
-  tx_cfg.mem_block_symbols = 64;
-  tx_cfg.resolution_hz = 10 * 1000 * 1000;
+  tx_cfg.mem_block_symbols = WS2812_RMT_MEM_BLOCK_SYMBOLS;
+  tx_cfg.resolution_hz = WS2812_RMT_RESOLUTION_HZ;
   tx_cfg.trans_queue_depth = 1;
-  ESP_RETURN_ON_ERROR(rmt_new_tx_channel(&tx_cfg, &g_handle), TAG, "Failed to create RMT channel");
+  esp_err_t err = rmt_new_tx_channel(&tx_cfg, &g_handle);
+  if (err != ESP_OK) {
+    ESP_LOGE(TAG, "Failed to create RMT channel: %s", esp_err_to_name(err));
+    g_handle = NULL;
+    return err;
+  }
 
   led_strip_encoder_config_t enc_cfg = {
-      .resolution = tx_cfg.resolution_hz,
+      .resolution = WS2812_RMT_RESOLUTION_HZ,
+      .t0h_ticks = WS2812_T0H,
+      .t0l_ticks = WS2812_T0L,
+      .t1h_ticks = WS2812_T1H,
+      .t1l_ticks = WS2812_T1L,
+      .reset_us = 0, // default: 300 us
   };
-  ESP_RETURN_ON_ERROR(rmt_new_led_strip_encoder(&enc_cfg, &g_encoder), TAG,
-                      "Failed to create LED encoder");
-
-  ESP_RETURN_ON_ERROR(rmt_enable(g_handle), TAG, "Failed to enable RMT channel");
-
-  return ESP_OK;
+  err = rmt_new_led_strip_encoder(&enc_cfg, &g_encoder);
+  if (err == ESP_OK) {
+    err = rmt_enable(g_handle);
+  }
+  if (err != ESP_OK) {
+    ESP_LOGE(TAG, "Failed to set up the LED encoder or enable the channel: %s",
+             esp_err_to_name(err));
+    release();
+  }
+  return err;
 }
 
-/**
- * @brief Transmit colour values to the LED chain.
- *
- * The function blocks until the RMT peripheral finishes sending
- * all LED data.
- *
- * @param new_state Desired LED colours.
- * @return ESP_OK on success or an ESP-IDF error code.
- */
+static uint8_t scale(uint32_t value) {
+  return (uint8_t)(((value & 0xFF) * g_brightness) / 255);
+}
+
 esp_err_t ws2812_write_leds(struct led_state new_state) {
-  setup_rmt_data_buffer(new_state);
+  if (g_handle == NULL || g_encoder == NULL) {
+    return ESP_ERR_INVALID_STATE;
+  }
+  // WS2812B datasheet, "Composition of 24bit data": G7..G0, R7..R0, B7..B0; RGBW parts add W last.
+  for (uint32_t led = 0; led < NUM_LEDS; led++) {
+    const uint32_t color = new_state.leds[led];
+    uint8_t* out = &g_led_bytes[led * BYTES_PER_LED];
+    out[0] = scale(color >> 8);  // green
+    out[1] = scale(color >> 16); // red
+    out[2] = scale(color);       // blue
+#if CONFIG_WS2812_LED_TYPE_RGBW
+    out[3] = scale(color >> 24); // white
+#endif
+  }
   rmt_transmit_config_t tx_cfg = {};
   tx_cfg.loop_count = 0;
-  ESP_RETURN_ON_ERROR(
-      rmt_transmit(g_handle, g_encoder, g_led_data_buffer, sizeof(g_led_data_buffer), &tx_cfg), TAG,
-      "Failed to transmit LED data");
+  ESP_RETURN_ON_ERROR(rmt_transmit(g_handle, g_encoder, g_led_bytes, sizeof(g_led_bytes), &tx_cfg),
+                      TAG, "Failed to transmit LED data");
   ESP_RETURN_ON_ERROR(rmt_tx_wait_all_done(g_handle, portMAX_DELAY), TAG,
                       "Failed waiting for RMT done");
-
   return ESP_OK;
 }
 
 void ws2812_set_brightness(uint8_t brightness) {
   g_brightness = brightness;
-}
-
-/**
- * @brief Convert colour values into RMT items for transmission.
- *
- * @param new_state Colours to send.
- */
-static void setup_rmt_data_buffer(struct led_state new_state) {
-  for (uint32_t led = 0; led < NUM_LEDS; led++) {
-    uint32_t color = new_state.leds[led];
-#if CONFIG_WS2812_LED_TYPE_RGBW
-    uint8_t w = (color >> 24) & 0xFF;
-#endif
-    uint8_t r = (color >> 16) & 0xFF;
-    uint8_t g = (color >> 8) & 0xFF;
-    uint8_t b = color & 0xFF;
-
-    r = (r * g_brightness) / 255;
-    g = (g * g_brightness) / 255;
-    b = (b * g_brightness) / 255;
-#if CONFIG_WS2812_LED_TYPE_RGBW
-    w = (w * g_brightness) / 255;
-    uint32_t bits_to_send = (w << 24) | (r << 16) | (g << 8) | b;
-#else
-    uint32_t bits_to_send = (r << 16) | (g << 8) | b;
-#endif
-    uint32_t mask = 1 << (BITS_PER_LED_CMD - 1);
-
-    for (uint32_t bit = 0; bit < BITS_PER_LED_CMD; bit++) {
-      uint32_t bit_is_set = bits_to_send & mask;
-      g_led_data_buffer[(led * BITS_PER_LED_CMD) + bit] =
-          bit_is_set
-              ? (rmt_symbol_word_t){.duration0 = T1H, .level0 = 1, .duration1 = T1L, .level1 = 0}
-              : (rmt_symbol_word_t){.duration0 = T0H, .level0 = 1, .duration1 = T0L, .level1 = 0};
-      mask >>= 1;
-    }
-  }
 }

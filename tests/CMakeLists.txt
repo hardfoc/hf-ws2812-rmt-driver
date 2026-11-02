@@ -19,6 +19,7 @@ add_executable(hf_ws2812_rmt_host_tests
   test_main.cpp
   test_strip.cpp
   test_effects.cpp
+  test_c_api.cpp
 )
 
 target_link_libraries(hf_ws2812_rmt_host_tests PRIVATE hf_ws2812_rmt_fake_idf)

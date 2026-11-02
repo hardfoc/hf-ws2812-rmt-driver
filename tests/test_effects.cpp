@@ -13,6 +13,7 @@ namespace {
 
 constexpr uint16_t kT1H = 8;
 
+/// The pixels of the last frame as 0xRRGGBB (the wire carries G, R, B).
 std::vector<uint32_t> lastFrame() {
   const auto& sym = fake_rmt::state().last_symbols;
   std::vector<uint32_t> words;
@@ -21,7 +22,7 @@ std::vector<uint32_t> lastFrame() {
     for (size_t b = 0; b < 24; ++b) {
       w = (w << 1) | (sym[i + b].duration0 == kT1H ? 1U : 0U);
     }
-    words.push_back(w);
+    words.push_back((((w >> 8) & 0xFFU) << 16) | (((w >> 16) & 0xFFU) << 8) | (w & 0xFFU));
   }
   return words;
 }

@@ -25,12 +25,12 @@ config WS2812_NUM_LEDS
 	Specify the number of LEDs that will be controlled through the component. Keep in mind that for every LED in the strip an RGB value needs to be stored in a buffer.
 
 config WS2812_LED_RMT_TX_CHANNEL
-        int "RMT channel number (-1 for auto)"
-        default -1
-        help
-        Select a fixed RMT channel to use for output. Set to -1 to let the
-        driver pick the first free channel automatically. On ESP32-C6 only
-        channels 0-3 are available.
+    int "RMT channel number (unused, kept for compatibility)"
+    default -1
+    help
+        Not used. ESP-IDF v5's RMT driver allocates a free transmit channel itself
+        (rmt_tx_channel_config_t has no channel field), so the driver cannot honour a
+        fixed channel number. Kept so existing sdkconfig files and code still build.
 
 config WS2812_LED_RMT_TX_GPIO
 	int "GPIO number where the WS2812 strip is connected."
@@ -39,28 +39,36 @@ config WS2812_LED_RMT_TX_GPIO
 	Specify which GPIO should be used to send the signal. Only Output pins can be used: 0-5 or 12-33 should be ok.
 
 config WS2812_T0H
-	int "0 bit high time"
-    default 14
+    int "0 bit high time (ticks of 100 ns)"
+    range 1 32767
+    default 4
     help
-	Time interval the signal should be high when a 0 bit is transmitted.
+        High time of a 0 bit, in RMT ticks of 100 ns (the driver runs the RMT at 10 MHz).
+        WS2812B datasheet: T0H = 0.4 us +-150 ns. Default 4 = 400 ns.
 
 config WS2812_T1H
-	int "1 bit high time"
-    default 52
+    int "1 bit high time (ticks of 100 ns)"
+    range 1 32767
+    default 8
     help
-	Time interval the signal should be high when a 1 bit is transmitted.
+        High time of a 1 bit, in RMT ticks of 100 ns.
+        WS2812B datasheet: T1H = 0.8 us +-150 ns. Default 8 = 800 ns.
 
 config WS2812_T0L
-	int "0 bit low time"
-    default 52
+    int "0 bit low time (ticks of 100 ns)"
+    range 1 32767
+    default 9
     help
-	Time interval the signal should be low followed by the high time for a 0 bit.
+        Low time after the high time of a 0 bit, in RMT ticks of 100 ns.
+        WS2812B datasheet: T0L = 0.85 us +-150 ns. Default 9 = 900 ns.
 
 config WS2812_T1L
-        int "1 bit low time"
-    default 52
+    int "1 bit low time (ticks of 100 ns)"
+    range 1 32767
+    default 5
     help
-        Time interval the signal should be low followed by the high time for a 1 bit.
+        Low time after the high time of a 1 bit, in RMT ticks of 100 ns.
+        WS2812B datasheet: T1L = 0.45 us +-150 ns. Default 5 = 500 ns.
 
 config WS2812_DEFAULT_BRIGHTNESS
     int "Default brightness (0-255)"

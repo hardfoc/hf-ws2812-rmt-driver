@@ -35,18 +35,17 @@ Wire the strip's DIN to a GPIO through a 5 V level shifter, add the component
 // WS2812B bit timing in RMT ticks of 100 ns (the driver runs the RMT at 10 MHz).
 constexpr uint16_t kT0H = 4, kT1H = 8, kT0L = 9, kT1L = 5;
 
-// A WS2812B reads green first: pack colours as 0xGGRRBB.
-constexpr uint32_t Grb(uint8_t r, uint8_t g, uint8_t b) {
-  return (uint32_t{g} << 16) | (uint32_t{r} << 8) | b;
-}
-
 extern "C" void app_main() {
   // 8 LEDs on GPIO8, brightness 32 of 255. The constructor claims an RMT TX channel.
   WS2812Strip strip(GPIO_NUM_8, -1, 8, LedType::RGB, kT0H, kT1H, kT0L, kT1L, 32);
+  if (strip.Begin() != ESP_OK) { // no free RMT channel, or a bad GPIO
+    ESP_LOGE("leds", "RMT channel set-up failed");
+    return;
+  }
 
   for (uint32_t i = 0;; i = (i + 1) % strip.Length()) {
-    strip.SetPixel(i, Grb(255, 0, 0)); // one red LED walks along the strip
-    if (strip.Show() != ESP_OK) {      // blocks until the frame is on the wire
+    strip.SetPixel(i, 0xFF0000);  // 0xRRGGBB: one red LED walks along the strip
+    if (strip.Show() != ESP_OK) { // blocks until the frame is on the wire
       ESP_LOGE("leds", "RMT transmit failed");
     }
     strip.SetPixel(i, 0);
@@ -56,8 +55,9 @@ extern "C" void app_main() {
 ```
 <!-- /generated -->
 
-The timing arguments are RMT ticks of 100 ns, and a WS2812B reads green first; the
-[Quickstart](https://hardfoc.github.io/hf-ws2812-rmt-driver/latest/quickstart/) explains both.
+The timing arguments are RMT ticks of 100 ns, and colours are `0xRRGGBB` (the driver sends them green first, as a
+WS2812B reads them); the [Quickstart](https://hardfoc.github.io/hf-ws2812-rmt-driver/latest/quickstart/) explains
+both.
 
 ## What it does
 
@@ -80,7 +80,8 @@ cp -r external/hf-ws2812-rmt-driver/examples/esp32/components/hf_ws2812_rmt comp
 set(HF_WS2812_RMT_ROOT ${CMAKE_SOURCE_DIR}/external/hf-ws2812-rmt-driver CACHE PATH "WS2812 driver checkout")
 ```
 
-Then `REQUIRES hf_ws2812_rmt` in your component. Details: [Installation](https://hardfoc.github.io/hf-ws2812-rmt-driver/latest/installation/).
+Then `REQUIRES hf_ws2812_rmt` in your component. Details:
+[Installation](https://hardfoc.github.io/hf-ws2812-rmt-driver/latest/installation/).
 
 ## Documentation
 

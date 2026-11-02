@@ -7,19 +7,21 @@ Most faults are one of those three.
 
 ## Every LED is white, or full on in one colour
 
-**Cause.** The bit timing. `WS2812Strip` counts in ticks of 100 ns; with the Kconfig defaults (14, 52, 52, 52)
-every high pulse lasts at least 1.4 µs, and the LEDs read every bit as a 1.
+**Cause.** The bit timing. `WS2812Strip` counts in ticks of 100 ns; values in microseconds or nanoseconds, or a
+project `sdkconfig` still holding the defaults of 1.0.0 and earlier (14, 52, 52, 52), make every high pulse
+too long, and the LEDs read every bit as a 1.
 
-**Fix.** Pass WS2812B timing to the constructor (`4, 8, 9, 5`) or put it in `sdkconfig.defaults`
-([Configuration](configuration.md)).
+**Fix.** Use WS2812B timing (`4, 8, 9, 5`, the Kconfig default): pass it to the constructor or fix the
+`CONFIG_WS2812_T*` lines in `sdkconfig` ([Configuration](configuration.md)).
 
 ## Red and green are swapped
 
-**Cause.** Colour order. The driver sends the packed value most significant byte first; a WS2812B expects green,
-then red, then blue.
+**Cause.** Colour packing. `SetPixel()` takes `0xRRGGBB` and the driver sends green first, as a WS2812B expects.
+Code written for 1.0.0 and earlier packed `0xGGRRBB` to work around the old byte order; with this version
+that swaps red and green. A strip whose LEDs read R, G, B (some clones) shows the same symptom.
 
-**Fix.** Pack colours as `0xGGRRBB` ([Colour order](timing.md#colour-order)). The built-in effects and
-`ColorWheel()` pack `0xRRGGBB`, so their colours are swapped the same way.
+**Fix.** Pack `0xRRGGBB` and drop any `Grb()`-style helper ([Colour order](timing.md#colour-order)). For an
+RGB-order clone, swap the bytes before `SetPixel()`.
 
 ## Nothing lights
 
@@ -42,10 +44,13 @@ series with DIN at the strip ([Hardware](hardware.md#logic-levels)).
 
 ## The last LEDs keep old colours, or frames merge
 
-**Cause.** The reset gap. `Show()` does not send a reset pulse; the LEDs latch only after the line has been low
-for more than 50 µs. Two `Show()` calls in a tight loop may not leave that gap.
+**Cause.** Not the reset: `Show()` ends every frame with a 300 µs low, longer than any WS2812-family part needs.
+The usual reasons are a frame shorter than the strip (`SetNumLeds()` smaller than the LED count), or a supply
+or data problem at the point where the old colours start.
 
-**Fix.** Delay at least 50 µs between frames; any animation tick does ([Signal timing](timing.md#the-reset-gap)).
+**Fix.** Set the strip length to the real LED count, then check the supply and data wire at that LED. If you send
+raw bytes with `ws2812::RmtTx::TransmitWs2812()`, leave 300 µs between calls yourself
+([Signal timing](timing.md#the-reset-gap)).
 
 ## Colours fade or shift towards the far end
 
@@ -54,26 +59,27 @@ for more than 50 µs. Two `Show()` calls in a tight loop may not leave that gap.
 **Fix.** Lower the brightness, or feed the supply in at both ends or every metre or so
 ([Hardware](hardware.md#power)).
 
-## The program aborts when a strip is created
+## `Begin()` fails, or `Show()` returns `ESP_ERR_INVALID_STATE`
 
-**Cause.** `ws2812::RmtTx` creates its channel with `ESP_ERROR_CHECK`: an RMT error aborts with a backtrace that
-names `rmt_new_tx_channel`, `rmt_enable` or `rmt_new_copy_encoder`. Usual reasons: no free transmit channel
-(each strip takes one, and on chips with 48-symbol blocks one strip can take two blocks), an invalid GPIO, or
-out of memory.
+**Cause.** The strip's RMT channel could not be set up; the log names `rmt_new_tx_channel`, `rmt_enable` or the
+encoder. Usual reasons: no free transmit channel (`ESP_ERR_NOT_FOUND`: each strip takes one), an invalid GPIO,
+or out of memory.
 
 **Fix.** Create fewer strips, check the GPIO, and see [Supported chips](porting.md#supported-chips) for the
-channel counts.
+channel counts. `Begin()` retries, so it succeeds once a channel is free.
 
 ## Glitches while Wi-Fi or other interrupts are busy
 
-**Cause.** The RMT channel has 64 symbols of memory and no DMA; ESP-IDF refills it from an interrupt during a
-frame. A late refill stretches a low period.
+**Cause.** The RMT channel has one memory block (48 or 64 symbols) and no DMA; ESP-IDF refills it from an interrupt
+during a frame. A late refill stretches a low period.
 
 **Fix.** Keep strips short, send frames from a high-priority task, and avoid long critical sections while
 `Show()` runs ([Signal timing](timing.md#memory)).
 
 ## The C functions in `ws2812_control.h` send garbage
 
-**Cause.** A defect in this version: `ws2812_write_leds()` passes its RMT symbol buffer to a byte encoder.
+**Cause.** Version 1.0.0 and earlier passed the RMT symbol buffer of `ws2812_write_leds()` to a byte encoder. Fixed
+since; with this version, garbage from the C interface means the Kconfig timing or LED type is wrong.
 
-**Fix.** Use `WS2812Strip` ([API guide](api-guide.md#the-c-interface)).
+**Fix.** Check `CONFIG_WS2812_T*` and `CONFIG_WS2812_LED_TYPE_*` ([Configuration](configuration.md)), or use
+`WS2812Strip` ([API guide](api-guide.md#the-c-interface)).

@@ -12,22 +12,19 @@ defaults of the `WS2812Strip` constructor and the fixed settings of the C interf
 | `CONFIG_WS2812_LED_TYPE_RGB` / `_RGBW` | RGB | 24 or 32 bits per LED |
 | `CONFIG_WS2812_NUM_LEDS` | 8 | Number of LEDs |
 | `CONFIG_WS2812_LED_RMT_TX_GPIO` | 18 | Data pin |
-| `CONFIG_WS2812_LED_RMT_TX_CHANNEL` | -1 | Ignored: ESP-IDF chooses the channel |
-| `CONFIG_WS2812_T0H` | 14 | 0 bit high time, in ticks |
-| `CONFIG_WS2812_T1H` | 52 | 1 bit high time, in ticks |
-| `CONFIG_WS2812_T0L` | 52 | 0 bit low time, in ticks |
-| `CONFIG_WS2812_T1L` | 52 | 1 bit low time, in ticks |
+| `CONFIG_WS2812_LED_RMT_TX_CHANNEL` | -1 | Unused: ESP-IDF chooses the channel |
+| `CONFIG_WS2812_T0H` | 4 | 0 bit high time, in 100 ns ticks (400 ns) |
+| `CONFIG_WS2812_T1H` | 8 | 1 bit high time, in 100 ns ticks (800 ns) |
+| `CONFIG_WS2812_T0L` | 9 | 0 bit low time, in 100 ns ticks (900 ns) |
+| `CONFIG_WS2812_T1L` | 5 | 1 bit low time, in 100 ns ticks (500 ns) |
 | `CONFIG_WS2812_DEFAULT_BRIGHTNESS` | 255 | 0 to 255 |
 
 Every option is the default of the matching `WS2812Strip` constructor argument. The LED type, count, timing and
 brightness are also the fixed settings of the C interface.
 
-!!! warning "The default timing is not WS2812B timing"
-    `WS2812Strip` counts in ticks of 100 ns. The defaults 14, 52, 52 and 52 mean 1.4 µs and 5.2 µs, which a
-    WS2812B reads as all ones. Pass the timing to the constructor, as every example on this site does, or set the
-    options to the values below.
-
-To make the defaults right for a WS2812B, put them in your project's `sdkconfig.defaults`:
+The timing defaults are the WS2812B values in ticks of 100 ns. Version 1.0.0 and earlier defaulted to 14, 52, 52
+and 52 (1.4 µs and 5.2 µs, read as all ones): a project `sdkconfig` written by an older version keeps those
+values, so delete the four lines from it or set them again. A typical `sdkconfig.defaults`:
 
 ```ini title="sdkconfig.defaults"
 CONFIG_WS2812_T0H=4
@@ -47,9 +44,9 @@ CONFIG_WS2812_NUM_LEDS=16
 | Argument | Default | Notes |
 | --- | --- | --- |
 | `gpio` (`gpio_num_t`) | `CONFIG_WS2812_LED_RMT_TX_GPIO` | Any output-capable GPIO |
-| `channel` (`int`) | `CONFIG_WS2812_LED_RMT_TX_CHANNEL` | Kept for compatibility; ignored |
+| `channel` (`int`) | `CONFIG_WS2812_LED_RMT_TX_CHANNEL` | Kept for compatibility; unused, because ESP-IDF v5's RMT driver has no way to request a channel number |
 | `num_leds` (`uint32_t`) | `CONFIG_WS2812_NUM_LEDS` | Change later with `SetNumLeds()` |
-| `type` (`LedType`) | `RGB`, or `RGBW` when Kconfig selects it | `RGBW` sends 32 bits per LED, white first |
+| `type` (`LedType`) | `RGB`, or `RGBW` when Kconfig selects it | `RGBW` sends 32 bits per LED: green, red, blue, white |
 | `t0h`, `t1h`, `t0l`, `t1l` (`uint16_t`) | `CONFIG_WS2812_T0H` ... | Ticks of 100 ns; change later with `SetTimings()` |
 | `brightness` (`uint8_t`) | `CONFIG_WS2812_DEFAULT_BRIGHTNESS` | Change later with `SetBrightness()` |
 

@@ -47,6 +47,7 @@ namespace ws2812_test_config {
  */
 struct LedPins {
     static constexpr uint8_t DATA_ = 8;           ///< GPIO8 - WS2812 data pin
+    static constexpr uint8_t DATA2_ = 4;          ///< GPIO4 - optional second strip (coexistence test)
 };
 
 /**
@@ -55,7 +56,8 @@ struct LedPins {
  * RMT (Remote Control Transceiver) channel settings for signal generation.
  */
 struct RMTConfig {
-    static constexpr uint8_t CHANNEL = 0;        ///< RMT channel number
+    /// Passed to WS2812Strip for compatibility only: ESP-IDF v5 picks a free channel itself.
+    static constexpr int CHANNEL = -1;
 };
 
 /**
@@ -64,7 +66,7 @@ struct RMTConfig {
  * Physical properties of the WS2812 LED strip.
  */
 struct StripSpecs {
-    static constexpr uint32_t NUM_LEDS = 16;            ///< Number of LEDs in the strip
+    static constexpr uint32_t LED_COUNT = 16;           ///< Number of LEDs in the strip
     static constexpr uint8_t DEFAULT_BRIGHTNESS = 50;   ///< Default brightness (0-255)
     static constexpr bool IS_RGBW = false;               ///< true for RGBW strips, false for RGB
 };
@@ -72,16 +74,19 @@ struct StripSpecs {
 /**
  * @brief WS2812 Signal Timing Parameters (nanoseconds)
  *
- * Timing parameters for the WS2812 one-wire protocol.
- * These are the standard WS2812B timing values.
- * Adjust for WS2812 variants (SK6812, etc.) if needed.
+ * WS2812B datasheet, "Data transfer time": T0H 0.4 us, T1H 0.8 us, T0L 0.85 us, T1L 0.45 us, each
+ * +-150 ns; RES above 50 us (280 us on WS2812B-V5). The driver adds the reset itself
+ * (WS2812Strip::kResetTimeUs).
  */
 struct SignalTiming {
-    static constexpr uint16_t T0H_NS = 300;     ///< Logic 0, high time (ns)
-    static constexpr uint16_t T0L_NS = 900;     ///< Logic 0, low time (ns)
-    static constexpr uint16_t T1H_NS = 900;     ///< Logic 1, high time (ns)
-    static constexpr uint16_t T1L_NS = 300;     ///< Logic 1, low time (ns)
-    static constexpr uint16_t RESET_US = 280;   ///< Reset/latch time (μs)
+    static constexpr uint16_t T0H_NS = 400;     ///< Logic 0, high time (ns)
+    static constexpr uint16_t T0L_NS = 850;     ///< Logic 0, low time (ns)
+    static constexpr uint16_t T1H_NS = 800;     ///< Logic 1, high time (ns)
+    static constexpr uint16_t T1L_NS = 450;     ///< Logic 1, low time (ns)
+    static constexpr uint16_t RESET_US = 280;   ///< Reset/latch time (us), minimum
+
+    /// RMT ticks of 100 ns (the driver runs the RMT at 10 MHz), rounded to the nearest tick.
+    static constexpr uint16_t ToTicks(uint16_t ns) { return static_cast<uint16_t>((ns + 50) / 100); }
 };
 
 /**
@@ -167,23 +172,23 @@ struct AppConfig {
     static constexpr uint8_t MAX_ERROR_COUNT = 10;         ///< Maximum errors before failsafe
 };
 
-} // namespace WS2812_TestConfig
+} // namespace ws2812_test_config
 
 /**
  * @brief Hardware configuration validation
  *
  * Compile-time checks to ensure configuration is valid.
  */
-static_assert(WS2812_TestConfig::StripSpecs::NUM_LEDS > 0,
+static_assert(ws2812_test_config::StripSpecs::LED_COUNT > 0,
               "Number of LEDs must be greater than 0");
 
-static_assert(WS2812_TestConfig::StripSpecs::DEFAULT_BRIGHTNESS <= 255,
+static_assert(ws2812_test_config::StripSpecs::DEFAULT_BRIGHTNESS <= 255,
               "Brightness must be 0-255");
 
-static_assert(WS2812_TestConfig::SignalTiming::T0H_NS + WS2812_TestConfig::SignalTiming::T0L_NS > 0,
+static_assert(ws2812_test_config::SignalTiming::T0H_NS + ws2812_test_config::SignalTiming::T0L_NS > 0,
               "Signal timing values must be positive");
 
-static_assert(WS2812_TestConfig::SignalTiming::T1H_NS + WS2812_TestConfig::SignalTiming::T1L_NS > 0,
+static_assert(ws2812_test_config::SignalTiming::T1H_NS + ws2812_test_config::SignalTiming::T1L_NS > 0,
               "Signal timing values must be positive");
 
 /**
