@@ -1,5 +1,0 @@
-@PACKAGE_INIT@
-
-include("${CMAKE_CURRENT_LIST_DIR}/hf_ws2812_rmt_build_settings.cmake")
-
-check_required_components(hf_ws2812_rmt)

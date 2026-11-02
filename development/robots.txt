@@ -1,1 +1,0 @@
-Sitemap: https://hardfoc.github.io/hf-ws2812-rmt-driver/development/sitemap.xml

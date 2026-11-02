@@ -1,9 +1,0 @@
-<map id="inc/ws2812_effects.hpp" name="inc/ws2812_effects.hpp">
-<area shape="rect" id="Node000001" title="LED animation effects for WS2812 strips." alt="" coords="145,5,318,33"/>
-<area shape="rect" id="Node000002" href="$ws2812__multi__animator_8hpp.html" title=" " alt="" coords="5,81,234,109"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="197,43,141,83,138,78,201,40"/>
-<area shape="rect" id="Node000004" href="$ws2812__effects_8cpp.html" title="LED animation effects implementation." alt="" coords="257,81,430,109"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="265,39,326,80,321,81,263,44"/>
-<area shape="rect" id="Node000003" href="$ws2812__multi__animator_8cpp.html" title="Multi&#45;strip animation coordinator implementation." alt="" coords="6,157,233,184"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="121,123,122,157,117,155,118,126"/>
-</map>
