@@ -4,6 +4,7 @@
  * timing, brightness, RGBW and errors.
  */
 #include "fake_rmt.hpp"
+#include "soc/soc_caps.h"
 #include "test_harness.hpp"
 #include "ws2812_cpp.hpp"
 
@@ -34,6 +35,8 @@ std::vector<uint32_t> decode(const std::vector<rmt_symbol_word_t>& symbols, uint
 
 } // namespace
 
+// ESP-IDF RMT docs, "Resource allocation": a TX channel with mem_block_symbols above
+// SOC_RMT_MEM_WORDS_PER_CHANNEL takes the next channel's memory block as well.
 TEST_CASE("constructor creates a 10 MHz TX channel on the given GPIO") {
   fake_rmt::reset();
   {
@@ -42,7 +45,8 @@ TEST_CASE("constructor creates a 10 MHz TX channel on the given GPIO") {
     CHECK_EQ(fake_rmt::state().channels_created, 1);
     CHECK_EQ(cfg.gpio_num, GPIO_NUM_8);
     CHECK_EQ(cfg.resolution_hz, 10'000'000U);
-    CHECK_EQ(cfg.mem_block_symbols, 64U);
+    // One memory block of the target (48 symbols on the C6 the stubs model), not 64.
+    CHECK_EQ(cfg.mem_block_symbols, static_cast<size_t>(SOC_RMT_MEM_WORDS_PER_CHANNEL));
     CHECK_EQ(cfg.flags.with_dma, 0U);
     CHECK_EQ(strip.Begin(), ESP_OK);
     CHECK_EQ(strip.Length(), 4U);

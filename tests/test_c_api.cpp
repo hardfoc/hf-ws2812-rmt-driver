@@ -37,6 +37,7 @@ TEST_CASE("C API: ws2812_write_leds sends the colours, green first, then a reset
   REQUIRE(ws2812_control_init(GPIO_NUM_8, -1) == ESP_OK);
   CHECK_EQ(fake_rmt::state().last_tx_config.gpio_num, GPIO_NUM_8);
   CHECK_EQ(fake_rmt::state().last_tx_config.resolution_hz, 10'000'000U);
+  CHECK_EQ(fake_rmt::state().last_tx_config.mem_block_symbols, 48U);    // one C6 memory block
   CHECK_EQ(ws2812_control_init(GPIO_NUM_8, -1), ESP_ERR_INVALID_STATE); // no second channel
   CHECK_EQ(fake_rmt::state().channels_created, 1);
 
