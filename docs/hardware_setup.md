@@ -1,12 +1,3 @@
----
-layout: default
-title: "🔌 Hardware Setup"
-description: "Hardware wiring and connection guide for WS2812 LED strips"
-nav_order: 3
-parent: "📚 Documentation"
-permalink: /docs/hardware_setup/
----
-
 # Hardware Setup
 
 ![WS2812 NRZ bit-encoding and 24-bit pixel cascade](assets/ws2812-nrz.svg)

@@ -1,12 +1,3 @@
----
-layout: default
-title: "🛠️ Installation"
-description: "Installation and integration instructions for the WS2812 driver"
-nav_order: 1
-parent: "📚 Documentation"
-permalink: /docs/installation/
----
-
 # Installation
 
 This guide covers how to integrate the WS2812 driver into your ESP-IDF project.

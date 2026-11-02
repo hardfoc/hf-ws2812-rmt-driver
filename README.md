@@ -1,11 +1,3 @@
----
-layout: default
-title: "HardFOC WS2812 Driver"
-description: "ESP32 RMT-based driver for WS2812 / NeoPixel addressable RGB(W) LED strips"
-nav_order: 1
-permalink: /
----
-
 # HF-WS2812 Driver
 **ESP32 RMT-based driver for WS2812 / NeoPixel addressable RGB(W) LED strips**
 
@@ -18,19 +10,19 @@ trees must not copy that pattern.
 [![CI](https://github.com/hardfoc/hf-ws2812-rmt-driver/actions/workflows/esp32-examples-build-ci.yml/badge.svg?branch=main)](https://github.com/hardfoc/hf-ws2812-rmt-driver/actions/workflows/esp32-examples-build-ci.yml)
 [![Docs](https://img.shields.io/badge/docs-GitHub%20Pages-blue)](https://hardfoc.github.io/hf-ws2812-rmt-driver/)
 
-## 📚 Table of Contents
-1. [Overview](#-overview)
-2. [Features](#-features)
-3. [Quick Start](#-quick-start)
-4. [Installation](#-installation)
-5. [API Reference](#-api-reference)
-6. [Examples](#-examples)
-7. [Documentation](#-documentation)
-8. [References](#-references)
-9. [Contributing](#-contributing)
-10. [License](#-license)
+## Table of Contents
+1. [Overview](#overview)
+2. [Features](#features)
+3. [Quick Start](#quick-start)
+4. [Installation](#installation)
+5. [API Reference](#api-reference)
+6. [Examples](#examples)
+7. [Documentation](#documentation)
+8. [References](#references)
+9. [Contributing](#contributing)
+10. [License](#license)
 
-## 📦 Overview
+## Overview
 
 > **📖 [📚🌐 Live Complete Documentation](https://hardfoc.github.io/hf-ws2812-rmt-driver/)** - 
 > Interactive guides, examples, and step-by-step tutorials
@@ -41,7 +33,7 @@ The driver supports both C and C++ APIs, includes built-in animation effects, an
 
 ![WS2812 NRZ bit-encoding and 24-bit pixel cascade](docs/assets/ws2812-nrz.svg)
 
-### 🔀 Chip Compatibility
+### Chip Compatibility
 
 All variants share the same single-wire NRZ protocol with chip-specific bit timings.
 The driver exposes per-LED-type timing presets via the `LedType` parameter and lets
@@ -57,7 +49,7 @@ you override each pulse width for non-standard parts.
 
 For non-standard parts, override timings via Kconfig (`Component Config → HF-ESP32-WS2812-RMT`).
 
-## ✨ Features
+## Features
 
 - ✅ **Hardware-Accelerated**: Uses ESP32 RMT peripheral for precise timing
 - ✅ **Dual API**: Both C and C++ interfaces available
@@ -68,7 +60,7 @@ For non-standard parts, override timings via Kconfig (`Component Config → HF-E
 - ✅ **Kconfig Integration**: Full ESP-IDF Kconfig configuration support
 - ✅ **Zero CPU Overhead**: RMT handles signal generation automatically
 
-## 🚀 Quick Start
+## Quick Start
 
 ```cpp
 #include "ws2812_cpp.hpp"
@@ -91,7 +83,7 @@ void app_main(void) {
 
 For detailed setup, see [Installation](docs/installation.md) and [Quick Start Guide](docs/quickstart.md).
 
-## 🔧 Installation
+## Installation
 
 1. **Add as ESP-IDF component** to your project
 2. **Configure via Kconfig**: Run `idf.py menuconfig` → Component Config → HF-ESP32-WS2812-RMT
@@ -104,7 +96,7 @@ For detailed setup, see [Installation](docs/installation.md) and [Quick Start Gu
 
 For detailed installation instructions, see [docs/installation.md](docs/installation.md).
 
-## 📖 API Reference
+## API Reference
 
 | Method | Description |
 |--------|-------------|
@@ -116,17 +108,17 @@ For detailed installation instructions, see [docs/installation.md](docs/installa
 
 For complete API documentation, see [docs/api_reference.md](docs/api_reference.md).
 
-## 📊 Examples
+## Examples
 
 For ESP32 examples, see the [examples/esp32](examples/esp32/) directory.
 
 Detailed example walkthroughs are available in [docs/examples.md](docs/examples.md).
 
-## 📚 Documentation
+## Documentation
 
 For complete documentation, see the [docs directory](docs/index.md).
 
-## 🔗 References
+## References
 
 | Resource | Link |
 |----------|------|
@@ -137,11 +129,11 @@ For complete documentation, see the [docs directory](docs/index.md).
 | Adafruit NeoPixel Überguide | <https://learn.adafruit.com/adafruit-neopixel-uberguide> |
 | C++17 language reference | <https://en.cppreference.com/w/cpp/17> |
 
-## 🤝 Contributing
+## Contributing
 
 Pull requests and suggestions are welcome! Please follow the existing code style and include tests for new features.
 
-## 📄 License
+## License
 
 This project is licensed under the **GNU General Public License v3.0**.
 See the [LICENSE](LICENSE) file for details.

@@ -1,18 +1,8 @@
----
-layout: default
-title: "📚 Documentation"
-description: "Complete documentation for the HardFOC WS2812 Driver"
-nav_order: 2
-parent: "HardFOC WS2812 Driver"
-permalink: /docs/
-has_children: true
----
-
 # HF-WS2812 Documentation
 
 Welcome! This directory contains step-by-step guides for installing, configuring, and using the **HF-WS2812** library.
 
-## 📚 Documentation Structure
+## Documentation Structure
 
 ### **Getting Started**
 
@@ -36,7 +26,7 @@ Welcome! This directory contains step-by-step guides for installing, configuring
 
 ---
 
-## 🚀 Quick Start Path
+## Quick Start Path
 
 **New to WS2812 LEDs?** Follow this recommended path:
 
@@ -48,7 +38,7 @@ Welcome! This directory contains step-by-step guides for installing, configuring
 
 ---
 
-## 💡 Need Help?
+## Need Help?
 
 - **🐛 Found a bug?** Check the [Troubleshooting](troubleshooting.md) guide
 - **❓ Have questions?** Review the [API Reference](api_reference.md)

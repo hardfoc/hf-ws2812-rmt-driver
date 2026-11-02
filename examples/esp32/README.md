@@ -2,19 +2,19 @@
 
 This directory contains comprehensive test suites for the PCAL9555 16-bit I/O expander driver using the ESP32-C6 DevKit-M-1.
 
-## 📋 Table of Contents
+## Table of Contents
 
-- [Hardware Overview](#-hardware-overview)
-- [Pin Connections](#-pin-connections)
-- [Hardware Setup](#-hardware-setup)
-- [Building the Tests](#-building-the-tests)
-- [Running the Tests](#-running-the-tests)
-- [Test Suites](#-test-suites)
-- [Troubleshooting](#-troubleshooting)
+- [Hardware Overview](#hardware-overview)
+- [Pin Connections](#pin-connections)
+- [Hardware Setup](#hardware-setup)
+- [Building the Tests](#building-the-tests)
+- [Running the Tests](#running-the-tests)
+- [Test Suites](#test-suites)
+- [Troubleshooting](#troubleshooting)
 
 ---
 
-## 🔌 Hardware Overview
+## Hardware Overview
 
 ### ESP32-C6 DevKit-M-1
 
@@ -71,7 +71,7 @@ The PCAL9555 is a 16-bit I/O expander with I²C interface, providing 16 GPIO pin
 
 ---
 
-## 📌 Pin Connections
+## Pin Connections
 
 ### I2C Bus Connections
 
@@ -108,7 +108,7 @@ The PCAL9555 I2C address is determined by the A0, A1, and A2 address pins:
 
 ---
 
-## 🛠️ Hardware Setup
+## Hardware Setup
 
 ### Basic Setup
 
@@ -138,7 +138,7 @@ For comprehensive testing, you can connect:
 
 ---
 
-## 🚀 Building the Tests
+## Building the Tests
 
 ### Prerequisites
 
@@ -201,7 +201,7 @@ The test suites use a centralized build system with scripts. Available applicati
 
 ---
 
-## 📤 Running the Tests
+## Running the Tests
 
 ### Flash Application
 
@@ -232,7 +232,7 @@ idf.py -p /dev/ttyUSB0 monitor
 
 ---
 
-## 🧪 Test Suites
+## Test Suites
 
 ### Comprehensive Test Suite
 
@@ -325,7 +325,7 @@ The test framework provides:
 
 ---
 
-## 🔧 Configuration
+## Configuration
 
 ### I2C Bus Configuration
 
@@ -350,7 +350,7 @@ static constexpr uint8_t PCAL9555_I2C_ADDRESS = 0x20;  // Default address
 
 ---
 
-## 🐛 Troubleshooting
+## Troubleshooting
 
 ### I2C Communication Failures
 
@@ -415,7 +415,7 @@ static constexpr uint8_t PCAL9555_I2C_ADDRESS = 0x20;  // Default address
 
 ---
 
-## 📚 Additional Resources
+## Additional Resources
 
 - [PCAL9555 Datasheet](../../docs/datasheet/PCAL9555A.pdf)
 - [Driver API Documentation](../../docs/api_reference.md)
@@ -424,7 +424,7 @@ static constexpr uint8_t PCAL9555_I2C_ADDRESS = 0x20;  // Default address
 
 ---
 
-## 🎯 Quick Reference
+## Quick Reference
 
 ### Build Commands
 
@@ -455,7 +455,7 @@ GPIO14 toggles between HIGH/LOW for each completed test, providing visual feedba
 
 ---
 
-## 📝 Notes
+## Notes
 
 - **I2C Pull-ups**: External pull-up resistors (4.7kΩ) are recommended even if internal pullups are enabled
 - **Address Configuration**: Default address is 0x20. Modify if using different A0/A1/A2 configuration

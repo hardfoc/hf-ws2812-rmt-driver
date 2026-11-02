@@ -1,12 +1,3 @@
----
-layout: default
-title: "🔧 Platform Integration"
-description: "ESP32-specific RMT integration for WS2812 driver"
-nav_order: 4
-parent: "📚 Documentation"
-permalink: /docs/platform_integration/
----
-
 # Platform Integration Guide
 
 This guide explains the platform-specific nature of the WS2812 driver and how it integrates with ESP32 hardware.

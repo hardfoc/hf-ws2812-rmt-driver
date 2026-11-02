@@ -1,12 +1,3 @@
----
-layout: default
-title: "🐛 Troubleshooting"
-description: "Common issues and solutions for the WS2812 driver"
-nav_order: 8
-parent: "📚 Documentation"
-permalink: /docs/troubleshooting/
----
-
 # Troubleshooting
 
 This guide helps you diagnose and resolve common issues when using the WS2812 driver.

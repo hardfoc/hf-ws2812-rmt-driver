@@ -1,12 +1,3 @@
----
-layout: default
-title: "⚙️ Configuration"
-description: "Configuration options for the WS2812 driver"
-nav_order: 4
-parent: "📚 Documentation"
-permalink: /docs/configuration/
----
-
 # Configuration
 
 This guide covers all configuration options available for the WS2812 driver.
