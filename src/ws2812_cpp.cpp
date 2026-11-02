@@ -17,13 +17,14 @@ WS2812Strip::WS2812Strip(gpio_num_t gpio, int channel, uint32_t num_leds,
 #endif
                          uint16_t t0h, uint16_t t1h, uint16_t t0l, uint16_t t1l, uint8_t brightness)
     : pixels_(num_leds, 0), buffer_(num_leds * (type == LedType::RGBW ? 32 : 24) + 1),
-      rmt_(gpio, 10'000'000, 64, false, 4, RMT_CLK_SRC_DEFAULT, channel), gpio_(gpio),
-      channel_(channel), type_(type), t0h_(t0h), t1h_(t1h), t0l_(t0l), t1l_(t1l),
+      rmt_(gpio, 10'000'000, ws2812::RmtTx::kDefaultMemSymbols, false, 4, RMT_CLK_SRC_DEFAULT,
+           channel),
+      gpio_(gpio), channel_(channel), type_(type), t0h_(t0h), t1h_(t1h), t0l_(t0l), t1l_(t1l),
       brightness_(brightness), num_leds_(num_leds) {
 }
 
 esp_err_t WS2812Strip::Begin() {
-  return ESP_OK; // channel already active in constructor
+  return rmt_.Init(); // ESP_OK if the constructor's set-up succeeded, otherwise retried here
 }
 
 void WS2812Strip::SetPixel(uint32_t index, uint32_t rgbw) {

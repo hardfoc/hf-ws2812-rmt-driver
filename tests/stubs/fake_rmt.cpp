@@ -28,8 +28,8 @@ struct FakeEncoder {
 
 // The fake encoders work like ESP-IDF's: they turn the payload into symbols, appended to the
 // recorder's waveform, and always finish in one call (the fake has unlimited channel memory).
-size_t fake_copy_encode(rmt_encoder_t* encoder, rmt_channel_handle_t /*channel*/,
-                        const void* data, size_t size, rmt_encode_state_t* ret_state) {
+size_t fake_copy_encode(rmt_encoder_t* encoder, rmt_channel_handle_t /*channel*/, const void* data,
+                        size_t size, rmt_encode_state_t* ret_state) {
   (void)encoder;
   auto& s = fake_rmt::state();
   const size_t n = size / sizeof(rmt_symbol_word_t);
@@ -39,8 +39,8 @@ size_t fake_copy_encode(rmt_encoder_t* encoder, rmt_channel_handle_t /*channel*/
   return n;
 }
 
-size_t fake_bytes_encode(rmt_encoder_t* encoder, rmt_channel_handle_t /*channel*/,
-                         const void* data, size_t size, rmt_encode_state_t* ret_state) {
+size_t fake_bytes_encode(rmt_encoder_t* encoder, rmt_channel_handle_t /*channel*/, const void* data,
+                         size_t size, rmt_encode_state_t* ret_state) {
   auto& s = fake_rmt::state();
   const auto* enc = reinterpret_cast<const FakeEncoder*>(encoder);
   const auto* bytes = static_cast<const uint8_t*>(data);
@@ -93,6 +93,9 @@ esp_err_t rmt_new_tx_channel(const rmt_tx_channel_config_t* config,
   }
   auto& s = fake_rmt::state();
   s.last_tx_config = *config;
+  if (s.new_tx_channel_result != ESP_OK) {
+    return s.new_tx_channel_result;
+  }
   *ret_chan = new rmt_channel_t{s.channels_created++};
   return ESP_OK;
 }

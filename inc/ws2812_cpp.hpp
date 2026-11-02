@@ -43,9 +43,13 @@ public:
                        uint8_t brightness = WS2812_DEFAULT_BRIGHTNESS);
 
   /**
-   * @brief Initialise the underlying driver.
+   * @brief Report whether the strip's RMT channel is ready, retrying its set-up if it failed.
    *
-   * @return ESP_OK on success.
+   * The constructor already creates the channel; it no longer aborts when that fails. Call Begin()
+   * and check the result before the first Show().
+   *
+   * @return ESP_OK when the channel is ready, otherwise the ESP-IDF error (for example
+   *         ESP_ERR_NOT_FOUND when no RMT transmit channel is free).
    */
   esp_err_t Begin();
 

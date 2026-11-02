@@ -15,6 +15,7 @@
 #include "esp_err.h"
 #include "led_strip_encoder.h"
 #include "sdkconfig.h"
+#include "ws2812_rmt_caps.h"
 #include <stdint.h>
 
 /**
@@ -40,11 +41,6 @@
 /** Low time for any bit in RMT ticks */
 #define WS2812_T0L CONFIG_WS2812_T0L
 #define WS2812_T1L CONFIG_WS2812_T1L
-
-/** RMT channel memory requested per strip, in symbols. */
-#ifndef WS2812_RMT_MEM_BLOCK_SYMBOLS
-#define WS2812_RMT_MEM_BLOCK_SYMBOLS 64
-#endif
 
 /** Default global brightness scaling */
 #define WS2812_DEFAULT_BRIGHTNESS CONFIG_WS2812_DEFAULT_BRIGHTNESS

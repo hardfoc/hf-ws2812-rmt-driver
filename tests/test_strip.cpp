@@ -202,3 +202,35 @@ TEST_CASE("Kconfig default timing is inside the WS2812B windows at 100 ns per ti
   CHECK(in(sym[8].duration0, 400));
   CHECK(in(sym[8].duration1, 850));
 }
+
+// A strip whose channel cannot be created (no free RMT TX channel: ESP_ERR_NOT_FOUND) used to abort
+// in the constructor, and Begin() always returned ESP_OK.
+TEST_CASE("a failed channel does not abort: Begin() reports it and retries") {
+  fake_rmt::reset();
+  fake_rmt::state().new_tx_channel_result = ESP_ERR_NOT_FOUND;
+  auto strip = makeStrip(2);
+  CHECK_EQ(strip.Begin(), ESP_ERR_NOT_FOUND);
+  CHECK_EQ(strip.Show(), ESP_ERR_INVALID_STATE);
+  CHECK_EQ(fake_rmt::state().transmits, 0);
+
+  fake_rmt::state().new_tx_channel_result = ESP_OK; // a channel became free
+  CHECK_EQ(strip.Begin(), ESP_OK);
+  CHECK_EQ(strip.Show(), ESP_OK);
+  CHECK_EQ(fake_rmt::state().channels_created, 1);
+  CHECK_EQ(strip.Begin(), ESP_OK); // already set up: no second channel
+  CHECK_EQ(fake_rmt::state().channels_created, 1);
+}
+
+TEST_CASE("RmtTx reports its init status") {
+  fake_rmt::reset();
+  fake_rmt::state().new_tx_channel_result = ESP_ERR_NO_MEM;
+  ws2812::RmtTx tx(GPIO_NUM_2);
+  CHECK(!tx.IsReady());
+  CHECK_EQ(tx.InitStatus(), ESP_ERR_NO_MEM);
+  const uint8_t grb[3] = {1, 2, 3};
+  CHECK_EQ(tx.TransmitWs2812(grb, sizeof(grb)), ESP_ERR_INVALID_STATE);
+  fake_rmt::state().new_tx_channel_result = ESP_OK;
+  CHECK_EQ(tx.Init(), ESP_OK);
+  CHECK(tx.IsReady());
+  CHECK_EQ(tx.InitStatus(), ESP_OK);
+}
