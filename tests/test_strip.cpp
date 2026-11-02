@@ -18,7 +18,8 @@ WS2812Strip makeStrip(uint32_t leds, LedType type = LedType::RGB, uint8_t bright
   return WS2812Strip(GPIO_NUM_8, -1, leds, type, kT0H, kT1H, kT0L, kT1L, brightness);
 }
 
-/// Decode the transmitted symbols back to bits, `bits` per LED, first-sent bit as the MSB.
+/// Decode the transmitted symbols back to bits, `bits` per LED, first-sent bit as the MSB: the
+/// wire word, G7 first (0xGGRRBB, or 0xGGRRBBWW for RGBW). The trailing reset symbol is skipped.
 std::vector<uint32_t> decode(const std::vector<rmt_symbol_word_t>& symbols, uint32_t bits) {
   std::vector<uint32_t> words;
   for (size_t i = 0; i + bits <= symbols.size(); i += bits) {
@@ -52,21 +53,49 @@ TEST_CASE("constructor creates a 10 MHz TX channel on the given GPIO") {
 TEST_CASE("Show sends 24 symbols per RGB LED with the configured timing") {
   fake_rmt::reset();
   auto strip = makeStrip(3);
-  strip.SetPixel(0, 0x800001);
+  strip.SetPixel(0, 0x008001); // R 0x00, G 0x80, B 0x01
   CHECK_EQ(strip.Show(), ESP_OK);
-  const auto& sym = fake_rmt::state().last_symbols;
-  REQUIRE(sym.size() == 3 * 24);
+  auto sym = fake_rmt::state().last_symbols;
+  REQUIRE(sym.size() == 3 * 24 + 1); // + the reset symbol
+  sym.pop_back();
   for (const auto& s : sym) {
     CHECK_EQ(s.level0, 1U);
     CHECK_EQ(s.level1, 0U);
     CHECK(s.duration0 == kT0H || s.duration0 == kT1H);
     CHECK_EQ(s.duration1, s.duration0 == kT1H ? kT1L : kT0L);
   }
-  // The packed value goes out most significant bit first: bit 23 is the first symbol.
+  // G7 is the first symbol, B0 the last of the LED.
   CHECK_EQ(sym[0].duration0, kT1H);
   CHECK_EQ(sym[23].duration0, kT1H);
   CHECK_EQ(decode(sym, 24)[0], 0x800001U);
   CHECK_EQ(decode(sym, 24)[1], 0U);
+}
+
+// WS2812B datasheet, "Composition of 24bit data": G7..G0, R7..R0, B7..B0, high bit first.
+TEST_CASE("Show sends a 0xRRGGBB pixel as green, red, blue") {
+  fake_rmt::reset();
+  auto strip = makeStrip(2);
+  strip.SetPixel(0, 0x112233);
+  strip.SetPixel(1, 0xFF0000); // pure red
+  REQUIRE(strip.Show() == ESP_OK);
+  const auto words = decode(fake_rmt::state().last_symbols, 24);
+  REQUIRE(words.size() == 2);
+  CHECK_EQ(words[0], 0x221133U);
+  CHECK_EQ(words[1], 0x00FF00U);
+}
+
+// WS2812B datasheet, "Data transmission time": RES, line low above 50 us (WS2812B-V5 and SK6812:
+// 280 us / 80 us). Without it two frames in a row run together and the second one never latches.
+TEST_CASE("Show ends every frame with a reset: the line low for at least 280 us") {
+  fake_rmt::reset();
+  auto strip = makeStrip(1);
+  REQUIRE(strip.Show() == ESP_OK);
+  const auto& sym = fake_rmt::state().last_symbols;
+  REQUIRE(sym.size() == 25U);
+  const auto& reset = sym.back();
+  CHECK_EQ(reset.level0, 0U);
+  CHECK_EQ(reset.level1, 0U);
+  CHECK(reset.duration0 + reset.duration1 >= 2800U); // ticks of 100 ns
 }
 
 TEST_CASE("brightness scales every channel before encoding") {
@@ -74,22 +103,23 @@ TEST_CASE("brightness scales every channel before encoding") {
   auto strip = makeStrip(1, LedType::RGB, 128);
   strip.SetPixel(0, 0xFF4002);
   REQUIRE(strip.Show() == ESP_OK);
-  // 0xFF * 128 / 255 = 0x80, 0x40 * 128 / 255 = 0x20, 2 * 128 / 255 = 1
-  CHECK_EQ(decode(fake_rmt::state().last_symbols, 24)[0], 0x802001U);
+  // 0xFF * 128 / 255 = 0x80, 0x40 * 128 / 255 = 0x20, 2 * 128 / 255 = 1; sent G, R, B
+  CHECK_EQ(decode(fake_rmt::state().last_symbols, 24)[0], 0x208001U);
   strip.SetBrightness(0);
   REQUIRE(strip.Show() == ESP_OK);
   CHECK_EQ(decode(fake_rmt::state().last_symbols, 24)[0], 0U);
 }
 
-TEST_CASE("RGBW strips send 32 bits per LED, white byte first") {
+// SK6812RGBW datasheet, "Data structure": G7..G0, R7..R0, B7..B0, W7..W0.
+TEST_CASE("RGBW strips send 32 bits per LED: green, red, blue, then white") {
   fake_rmt::reset();
   auto strip = makeStrip(2, LedType::RGBW);
-  strip.SetPixel(1, 0x11223344);
+  strip.SetPixel(1, 0x11223344); // W 0x11, R 0x22, G 0x33, B 0x44
   REQUIRE(strip.Show() == ESP_OK);
   const auto words = decode(fake_rmt::state().last_symbols, 32);
   REQUIRE(words.size() == 2);
   CHECK_EQ(words[0], 0U);
-  CHECK_EQ(words[1], 0x11223344U);
+  CHECK_EQ(words[1], 0x33224411U);
 }
 
 TEST_CASE("SetPixel ignores out-of-range indices; SetNumLeds clears and resizes") {
@@ -98,12 +128,12 @@ TEST_CASE("SetPixel ignores out-of-range indices; SetNumLeds clears and resizes"
   strip.SetPixel(2, 0xFFFFFF);
   strip.SetPixel(1, 0x0000FF);
   REQUIRE(strip.Show() == ESP_OK);
-  CHECK_EQ(fake_rmt::state().last_symbols.size(), 48U);
+  CHECK_EQ(fake_rmt::state().last_symbols.size(), 48U + 1U);
   CHECK_EQ(decode(fake_rmt::state().last_symbols, 24)[1], 0x0000FFU);
   strip.SetNumLeds(5);
   CHECK_EQ(strip.Length(), 5U);
   REQUIRE(strip.Show() == ESP_OK);
-  CHECK_EQ(fake_rmt::state().last_symbols.size(), 5U * 24U);
+  CHECK_EQ(fake_rmt::state().last_symbols.size(), 5U * 24U + 1U);
   for (uint32_t w : decode(fake_rmt::state().last_symbols, 24)) {
     CHECK_EQ(w, 0U);
   }
@@ -113,7 +143,7 @@ TEST_CASE("SetTimings changes the symbols of the next Show") {
   fake_rmt::reset();
   auto strip = makeStrip(1);
   strip.SetTimings(3, 7, 9, 6);
-  strip.SetPixel(0, 0x800000);
+  strip.SetPixel(0, 0x008000); // green: the first bit on the wire
   REQUIRE(strip.Show() == ESP_OK);
   const auto& sym = fake_rmt::state().last_symbols;
   CHECK_EQ(sym[0].duration0, 7U);

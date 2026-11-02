@@ -16,7 +16,7 @@ WS2812Strip::WS2812Strip(gpio_num_t gpio, int channel, uint32_t num_leds,
                          LedType type,
 #endif
                          uint16_t t0h, uint16_t t1h, uint16_t t0l, uint16_t t1l, uint8_t brightness)
-    : pixels_(num_leds, 0), buffer_(num_leds * (type == LedType::RGBW ? 32 : 24)),
+    : pixels_(num_leds, 0), buffer_(num_leds * (type == LedType::RGBW ? 32 : 24) + 1),
       rmt_(gpio, 10'000'000, 64, false, 4, RMT_CLK_SRC_DEFAULT, channel), gpio_(gpio),
       channel_(channel), type_(type), t0h_(t0h), t1h_(t1h), t0l_(t0l), t1l_(t1l),
       brightness_(brightness), num_leds_(num_leds) {
@@ -37,42 +37,45 @@ uint32_t WS2812Strip::Length() const {
 }
 
 esp_err_t WS2812Strip::Show() {
-  uint32_t bits_per_led = (type_ == LedType::RGBW) ? 32 : 24;
+  const uint32_t bits_per_led = (type_ == LedType::RGBW) ? 32 : 24;
+  const rmt_symbol_word_t one = {.duration0 = static_cast<uint16_t>(t1h_ & 0x7FFF),
+                                 .level0 = 1,
+                                 .duration1 = static_cast<uint16_t>(t1l_ & 0x7FFF),
+                                 .level1 = 0};
+  const rmt_symbol_word_t zero = {.duration0 = static_cast<uint16_t>(t0h_ & 0x7FFF),
+                                  .level0 = 1,
+                                  .duration1 = static_cast<uint16_t>(t0l_ & 0x7FFF),
+                                  .level1 = 0};
   for (uint32_t led = 0; led < num_leds_; ++led) {
-    uint32_t color = pixels_[led];
-    uint8_t r = (color >> 16) & 0xFF;
-    uint8_t g = (color >> 8) & 0xFF;
-    uint8_t b = color & 0xFF;
-    uint32_t bits = 0;
+    const uint32_t color = pixels_[led];
+    const auto scale = [this](uint32_t c) {
+      return static_cast<uint32_t>((c & 0xFF) * brightness_ / 255);
+    };
+    const uint32_t r = scale(color >> 16);
+    const uint32_t g = scale(color >> 8);
+    const uint32_t b = scale(color);
 
-    r = (r * brightness_) / 255;
-    g = (g * brightness_) / 255;
-    b = (b * brightness_) / 255;
-
+    // WS2812B datasheet, "Composition of 24bit data": G7..G0 R7..R0 B7..B0, high bit first.
+    // SK6812RGBW, "Data structure": the white byte follows blue.
+    uint32_t bits = (g << 16) | (r << 8) | b;
     if (type_ == LedType::RGBW) {
-      uint8_t w = (color >> 24) & 0xFF;
-      w = (w * brightness_) / 255;
-      bits = (w << 24) | (r << 16) | (g << 8) | b;
-    } else {
-      bits = (r << 16) | (g << 8) | b;
+      bits = (bits << 8) | scale(color >> 24);
     }
 
     uint32_t mask = 1U << (bits_per_led - 1);
     for (uint32_t bit = 0; bit < bits_per_led; ++bit) {
-      bool set = bits & mask;
-      buffer_[led * bits_per_led + bit] = set ? (rmt_symbol_word_t){.duration0 = (uint16_t)t1h_,
-                                                                   .level0 = 1,
-                                                                   .duration1 = (uint16_t)t1l_,
-                                                                   .level1 = 0}
-                                             : (rmt_symbol_word_t){.duration0 = (uint16_t)t0h_,
-                                                                   .level0 = 1,
-                                                                   .duration1 = (uint16_t)t0l_,
-                                                                   .level1 = 0};
+      buffer_[led * bits_per_led + bit] = (bits & mask) ? one : zero;
       mask >>= 1;
     }
   }
 
-  return rmt_.Transmit(buffer_.data(), num_leds_ * bits_per_led);
+  // Reset code (datasheet "RES"): the line held low so the LEDs latch the frame. WS2812B asks for
+  // more than 50 us, WS2812B-V5 for at least 280 us; kResetTicks covers both.
+  const uint32_t frame_symbols = num_leds_ * bits_per_led;
+  buffer_[frame_symbols] = {
+      .duration0 = kResetTicks / 2, .level0 = 0, .duration1 = kResetTicks / 2, .level1 = 0};
+
+  return rmt_.Transmit(buffer_.data(), frame_symbols + 1);
 }
 
 void WS2812Strip::SetBrightness(uint8_t value) {
@@ -82,7 +85,7 @@ void WS2812Strip::SetBrightness(uint8_t value) {
 void WS2812Strip::SetNumLeds(uint32_t num_leds) {
   num_leds_ = num_leds;
   pixels_.assign(num_leds, 0);
-  buffer_.resize(num_leds * (type_ == LedType::RGBW ? 32 : 24));
+  buffer_.resize(num_leds * (type_ == LedType::RGBW ? 32 : 24) + 1);
 }
 
 void WS2812Strip::SetTimings(uint16_t t0h, uint16_t t1h, uint16_t t0l, uint16_t t1l) {

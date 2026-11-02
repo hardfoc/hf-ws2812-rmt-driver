@@ -53,7 +53,8 @@ public:
    * @brief Set the colour of a single LED.
    *
    * @param index Index of the LED starting from 0.
-   * @param rgbw Packed 24/32-bit colour value.
+   * @param rgbw Packed colour: 0xRRGGBB, or 0xWWRRGGBB on an RGBW strip. Show() sends it in the
+   *             order the LED reads it (green, red, blue, then white).
    */
   void SetPixel(uint32_t index, uint32_t rgbw);
 
@@ -62,6 +63,9 @@ public:
 
   /**
    * @brief Send the currently stored colours to the LED strip.
+   *
+   * Sends every pixel green, red, blue (then white), followed by a reset (line low for
+   * kResetTimeUs) that latches the frame. Blocks until the frame is on the wire.
    */
   esp_err_t Show();
 
@@ -97,6 +101,9 @@ public:
    */
   static uint32_t ColorWheel(uint8_t pos);
 
+  /** Length of the reset (latch) pulse that ends every frame: at least 280 us (WS2812B-V5). */
+  static constexpr uint32_t kResetTimeUs = 300;
+
   // ===========================================================================
   // Driver Version
   // ===========================================================================
@@ -122,6 +129,8 @@ public:
   }
 
 private:
+  static constexpr uint16_t kResetTicks = kResetTimeUs * 10; // 100 ns ticks
+
   std::vector<uint32_t> pixels_;
   std::vector<rmt_symbol_word_t> buffer_;
   ws2812::RmtTx rmt_;
