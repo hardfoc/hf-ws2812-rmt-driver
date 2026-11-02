@@ -25,12 +25,12 @@ config WS2812_NUM_LEDS
 	Specify the number of LEDs that will be controlled through the component. Keep in mind that for every LED in the strip an RGB value needs to be stored in a buffer.
 
 config WS2812_LED_RMT_TX_CHANNEL
-        int "RMT channel number (-1 for auto)"
-        default -1
-        help
-        Select a fixed RMT channel to use for output. Set to -1 to let the
-        driver pick the first free channel automatically. On ESP32-C6 only
-        channels 0-3 are available.
+    int "RMT channel number (unused, kept for compatibility)"
+    default -1
+    help
+        Not used. ESP-IDF v5's RMT driver allocates a free transmit channel itself
+        (rmt_tx_channel_config_t has no channel field), so the driver cannot honour a
+        fixed channel number. Kept so existing sdkconfig files and code still build.
 
 config WS2812_LED_RMT_TX_GPIO
 	int "GPIO number where the WS2812 strip is connected."
