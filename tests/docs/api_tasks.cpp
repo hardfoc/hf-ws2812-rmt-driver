@@ -11,16 +11,18 @@
 #include <cstdio>
 
 namespace {
-constexpr uint32_t Grb(uint8_t r, uint8_t g, uint8_t b) {
-  return (uint32_t{g} << 16) | (uint32_t{r} << 8) | b;
+/// Pack a colour as 0xRRGGBB, the format SetPixel() takes.
+constexpr uint32_t Rgb(uint8_t r, uint8_t g, uint8_t b) {
+  return (uint32_t{r} << 16) | (uint32_t{g} << 8) | b;
 }
 } // namespace
 
 // --8<-- [start:create]
-// WS2812B timing in 100 ns ticks: T0H 400 ns, T1H 800 ns, T0L 900 ns, T1L 500 ns.
+// WS2812B timing in 100 ns ticks: T0H 400 ns, T1H 800 ns, T0L 900 ns, T1L 500 ns (also the Kconfig
+// defaults).
 WS2812Strip make_status_strip() {
   return WS2812Strip(GPIO_NUM_8,   // data pin
-                     -1,           // channel: ignored, ESP-IDF picks a free one
+                     -1,           // channel: unused, ESP-IDF picks a free one
                      16,           // LEDs
                      LedType::RGB, // 24 bits per LED (LedType::RGBW: 32)
                      4, 8, 9, 5,   // T0H, T1H, T0L, T1L in ticks
@@ -28,13 +30,26 @@ WS2812Strip make_status_strip() {
 }
 // --8<-- [end:create]
 
+// --8<-- [start:begin]
+bool start_strip(WS2812Strip& strip) {
+  // The constructor does not abort when the channel cannot be created; Begin() says whether it was,
+  // and tries again if not.
+  const esp_err_t err = strip.Begin();
+  if (err != ESP_OK) {
+    ESP_LOGE("leds", "no RMT channel: %s", esp_err_to_name(err)); // e.g. ESP_ERR_NOT_FOUND
+    return false;
+  }
+  return true;
+}
+// --8<-- [end:begin]
+
 // --8<-- [start:pixels]
 esp_err_t show_gradient(WS2812Strip& strip) {
   const uint32_t n = strip.Length();
   const uint32_t last = n > 1 ? n - 1 : 1;
   for (uint32_t i = 0; i < n; ++i) {
     const auto level = static_cast<uint8_t>(255 * i / last);
-    strip.SetPixel(i, Grb(level, 0, 255 - level)); // blue to red
+    strip.SetPixel(i, Rgb(level, 0, 255 - level)); // blue to red
   }
   return strip.Show(); // nothing reaches the LEDs until Show()
 }
@@ -50,7 +65,7 @@ esp_err_t dim(WS2812Strip& strip) {
 // --8<-- [start:resize]
 esp_err_t grow(WS2812Strip& strip) {
   strip.SetNumLeds(60); // all pixels are cleared to 0
-  strip.SetPixel(59, Grb(0, 0, 255));
+  strip.SetPixel(59, Rgb(0, 0, 255));
   return strip.Show();
 }
 // --8<-- [end:resize]
@@ -79,8 +94,8 @@ void two_strips(WS2812Strip& front, WS2812Strip& rear) {
   // unified = true: both strips run the effect over the longer strip's length.
   // sync = true: one step counter for both.
   WS2812MultiAnimator multi({&front, &rear}, true, true);
-  multi.SetEffect(WS2812Animator::Effect::Chase, Grb(255, 80, 0));
-  multi.SetEffect(1, WS2812Animator::Effect::Blink, Grb(255, 0, 0)); // rear strip only
+  multi.SetEffect(WS2812Animator::Effect::Chase, Rgb(255, 80, 0));
+  multi.SetEffect(1, WS2812Animator::Effect::Blink, Rgb(255, 0, 0)); // rear strip only
   for (int frame = 0; frame < 500; ++frame) {
     multi.Tick();
     vTaskDelay(pdMS_TO_TICKS(50));
@@ -92,7 +107,7 @@ void two_strips(WS2812Strip& front, WS2812Strip& rear) {
 bool show_or_report(WS2812Strip& strip) {
   const esp_err_t err = strip.Show();
   if (err != ESP_OK) {
-    // The RMT driver's code, for example ESP_ERR_INVALID_STATE when the channel is not enabled.
+    // The RMT driver's code, or ESP_ERR_INVALID_STATE when the channel was never set up.
     ESP_LOGE("leds", "Show failed: %s", esp_err_to_name(err));
     return false;
   }
@@ -103,7 +118,7 @@ bool show_or_report(WS2812Strip& strip) {
 // --8<-- [start:raw]
 esp_err_t send_raw_grb(ws2812::RmtTx& tx) {
   // Bytes go out as they are, MSB first, with the WS2812B timing built into RmtTx (10 MHz
-  // resolution).
+  // resolution): already in wire order, and no reset is appended.
   const uint8_t frame[] = {0x00, 0xFF, 0x00,  // LED 0: red   (G, R, B)
                            0xFF, 0x00, 0x00}; // LED 1: green
   return tx.TransmitWs2812(frame, sizeof(frame));

@@ -99,7 +99,7 @@ TEST_CASE("Show ends every frame with a reset: the line low for at least 280 us"
   const auto& reset = sym.back();
   CHECK_EQ(reset.level0, 0U);
   CHECK_EQ(reset.level1, 0U);
-  CHECK(reset.duration0 + reset.duration1 >= 2800U); // ticks of 100 ns
+  CHECK(reset.duration0 + reset.duration1 >= 2800); // ticks of 100 ns
 }
 
 TEST_CASE("brightness scales every channel before encoding") {

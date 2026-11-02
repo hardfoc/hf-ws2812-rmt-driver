@@ -9,7 +9,7 @@ The application targets an ESP32-C6. CI builds every app below on each pull requ
 <!-- generated: examples -->
 | App | What it shows | Source | CI |
 | --- | --- | --- | --- |
-| `ws2812_comprehensive_test` :material-star:{ title="featured" } | Test application scaffold: prints the driver version and runs a placeholder test; no LED output yet | [`WS2812ComprehensiveTest.cpp`](../examples/esp32/main/WS2812ComprehensiveTest.cpp) | yes |
+| `ws2812_comprehensive_test` :material-star:{ title="featured" } | Hardware test: channel set-up, colours (green first on the wire), brightness, an animation and a second strip | [`WS2812ComprehensiveTest.cpp`](../examples/esp32/main/WS2812ComprehensiveTest.cpp) | yes |
 
 Build and flash one (from `examples/esp32`, ESP-IDF environment loaded):
 
@@ -35,8 +35,10 @@ from) and build each app as its own firmware image.
 
 ## What to read
 
-The test application is a scaffold: it starts, prints the driver version and runs a placeholder test, but it does
-not drive LEDs yet. Until it does, these are the working references:
+The test application drives a WS2812B strip on GPIO8 (and briefly a second one on GPIO4) and checks every return
+code: `Begin()`, red, green, blue and white for a second each, a walking pixel, a brightness ramp, the rainbow
+animator, then a second strip next to the first. Pins, length and timing are in
+[`esp32_ws2812_test_config.hpp`](../examples/esp32/main/esp32_ws2812_test_config.hpp). Other references:
 
 | You want to | Read |
 | --- | --- |

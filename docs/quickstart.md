@@ -45,11 +45,12 @@ What each step does:
 
 1. The `WS2812Strip` constructor creates an RMT transmit channel on the GPIO at 10 MHz, so the four timing
    arguments are in ticks of 100 ns: 4, 8, 9 and 5 give 400, 800, 900 and 500 ns, inside the WS2812B's ±150 ns
-   window. Pass them explicitly: the Kconfig defaults are not WS2812B timings ([Configuration](configuration.md)).
-2. `Grb()` packs a colour the way the strip sends it: the driver sends the packed value most significant byte
-   first, and a WS2812B expects green first.
-3. `SetPixel()` writes the buffer; nothing reaches the LEDs until `Show()`, which scales by the brightness, encodes
-   24 symbols per LED and blocks until the RMT has sent them.
+   window. They are also the Kconfig defaults ([Configuration](configuration.md)).
+2. `Begin()` reports whether the RMT channel was set up; a failure (no free channel, a bad GPIO) is returned, not
+   an abort.
+3. Colours are packed `0xRRGGBB`; the driver sends green first, as a WS2812B expects.
+4. `SetPixel()` writes the buffer; nothing reaches the LEDs until `Show()`, which scales by the brightness, encodes
+   24 symbols per LED, appends the reset that latches the frame and blocks until the RMT has sent them.
 
 The host CI compiles this example against the driver's headers, so it matches the current API.
 
@@ -57,11 +58,11 @@ The host CI compiles this example against the driver's headers, so it matches th
 
 | Symptom | First thing to check |
 | --- | --- |
-| Every LED white or full on | The timing arguments: ticks are 100 ns, so the Kconfig defaults (14, 52, 52, 52) are far too long |
-| Red and green swapped | Colour packing: a WS2812B wants `0xGGRRBB` |
+| Every LED white or full on | The timing arguments: ticks are 100 ns, so values in ns or µs are far too long |
+| Red and green swapped | Colour packing: `SetPixel()` takes `0xRRGGBB`; drop any `0xGGRRBB` workaround from older code |
 | Nothing lights | Ground shared with the strip, data into DIN (not DOUT), the GPIO number |
 | First LED flickers or shows random colours | Data level: add the level shifter, keep the data wire short |
-| Abort at start-up in `RmtTx` | No free RMT transmit channel, or an invalid GPIO ([Troubleshooting](troubleshooting.md)) |
+| `Begin()` fails | No free RMT transmit channel, or an invalid GPIO ([Troubleshooting](troubleshooting.md)) |
 
 ## Next
 

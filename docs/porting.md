@@ -26,9 +26,10 @@ The component manifest lists these targets. The channel and memory figures are E
 CI builds the examples for the ESP32-C6 with ESP-IDF v5.5; the other chips are listed by the manifest but not
 built.
 
-Each `WS2812Strip` asks ESP-IDF for one transmit channel with 64 symbols of memory. Where a block holds 48
-symbols, that request takes two blocks, which can leave the next channel without memory: on the two-channel
-chips, plan for one strip until you have checked a second one on hardware.
+Each `WS2812Strip` (and the C interface) asks ESP-IDF for one transmit channel with one memory block of the target
+(`SOC_RMT_MEM_WORDS_PER_CHANNEL`), so every transmit channel of the chip can drive a strip. Define
+`WS2812_RMT_MEM_BLOCK_SYMBOLS` before including the driver to ask for more; above one block a channel takes its
+neighbour's block too.
 
 Chips without an RMT peripheral (the ESP32-C2, for example) cannot run it. ESP-IDF v5.3 or later is required,
 because the component requires `esp_driver_rmt`.

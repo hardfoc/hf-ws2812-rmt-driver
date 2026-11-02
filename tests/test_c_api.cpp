@@ -64,7 +64,7 @@ TEST_CASE("C API: ws2812_write_leds sends the colours, green first, then a reset
   const auto& reset = s.last_symbols.back();
   CHECK_EQ(reset.level0, 0U);
   CHECK_EQ(reset.level1, 0U);
-  CHECK(reset.duration0 + reset.duration1 >= 2800U);
+  CHECK(reset.duration0 + reset.duration1 >= 2800);
 
   ws2812_set_brightness(128);
   state.leds[0] = 0x00FF00;

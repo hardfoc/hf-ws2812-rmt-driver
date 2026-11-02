@@ -3,9 +3,9 @@
 How to do the common jobs with the driver: create a strip, set pixels, dim, resize, animate, drive several
 strips and handle errors.
 
-Every snippet on this page is compiled by the host CI from
-[`tests/docs/api_tasks.cpp`](../tests/docs/api_tasks.cpp), where `Grb(r, g, b)` packs a colour as `0xGGRRBB`
-(see [Colour order](timing.md#colour-order)). The [API reference](api-reference.md) lists every member.
+Every snippet on this page is compiled by the host CI from [`tests/docs/api_tasks.cpp`](../tests/docs/api_tasks.cpp),
+where `Rgb(r, g, b)` packs a colour as `0xRRGGBB`, the format `SetPixel()` takes (see [Colour
+order](timing.md#colour-order)). The [API reference](api-reference.md) lists every member.
 
 ## The shape of the API
 
@@ -19,14 +19,14 @@ Every snippet on this page is compiled by the host CI from
 | `WS2812Strip` member | Does |
 | --- | --- |
 | `WS2812Strip(gpio, channel, num_leds, type, t0h, t1h, t0l, t1l, brightness)` | Creates the RMT channel; every argument has a Kconfig default |
-| `SetPixel(index, colour)` | Writes one pixel of the buffer; out-of-range indices are ignored |
-| `Show()` | Scales, encodes and sends the buffer; blocks until done; returns `esp_err_t` |
+| `SetPixel(index, colour)` | Writes one pixel (`0xRRGGBB`, or `0xWWRRGGBB` for RGBW); out-of-range indices are ignored |
+| `Show()` | Scales, encodes and sends the buffer green first, then the reset; blocks until done; returns `esp_err_t` |
 | `SetBrightness(0-255)` | Global scale applied at the next `Show()` |
 | `SetNumLeds(n)` | Resizes and clears the buffer |
 | `SetTimings(t0h, t1h, t0l, t1l)` | New bit timing in 100 ns ticks |
 | `Length()` | The number of LEDs |
 | `ColorWheel(0-255)` | A colour on a red-green-blue wheel, packed `0xRRGGBB` |
-| `Begin()` | Nothing; returns `ESP_OK` (the constructor already set the channel up) |
+| `Begin()` | `ESP_OK` if the constructor set the channel up, otherwise retries and returns the RMT error |
 | `GetDriverVersion()` | The version string, for example `"1.0.0"` |
 
 ## Create a strip
@@ -35,10 +35,16 @@ Every snippet on this page is compiled by the host CI from
 --8<-- "tests/docs/api_tasks.cpp:create"
 ```
 
-The constructor creates and enables the RMT channel at once, so create strips where an abort at start-up is
-acceptable, typically in `app_main()` or a task's set-up. Keep the object alive as long as you use the LEDs: the
-destructor releases the channel. The `channel` argument is accepted and ignored; ESP-IDF's RMT driver picks a
-free transmit channel.
+The constructor creates and enables the RMT channel at once. It does not abort when that fails (no free channel,
+an invalid GPIO, no memory); check `Begin()` before the first frame:
+
+```cpp
+--8<-- "tests/docs/api_tasks.cpp:begin"
+```
+
+Until `Begin()` succeeds, `Show()` returns `ESP_ERR_INVALID_STATE`. Keep the object alive as long as you use the
+LEDs: the destructor releases the channel. The `channel` argument is accepted and unused: ESP-IDF v5's RMT driver
+picks a free transmit channel and has no way to request a number.
 
 ## Set pixels and show them
 
@@ -101,8 +107,9 @@ effect over a longer imaginary strip, and `SetStep()` / `Step()` read and set it
 --8<-- "tests/docs/api_tasks.cpp:multi"
 ```
 
-Each strip has its own RMT channel, so the number of strips is limited by the chip's transmit channels
-([Porting](porting.md#supported-chips)). The strips are sent one after the other in each `Tick()`.
+Each strip has its own RMT channel and one memory block, so the number of strips is the chip's number of transmit
+channels ([Porting](porting.md#supported-chips)). One strip too many fails in `Begin()` with `ESP_ERR_NOT_FOUND`. The
+strips are sent one after the other in each `Tick()`.
 
 ## Handle errors
 
@@ -112,8 +119,9 @@ Each strip has its own RMT channel, so the number of strips is limited by the ch
 
 | Signal | Meaning | What to do |
 | --- | --- | --- |
-| Abort in the `RmtTx` constructor | `rmt_new_tx_channel()`, `rmt_enable()` or the encoder failed: no free channel, bad GPIO, no memory | Fix the configuration; it is not recoverable at run time |
-| `Show()` returns an `esp_err_t` other than `ESP_OK` | The RMT driver refused the transfer | Log it with `esp_err_to_name()`; the frame was not sent |
+| `Begin()` returns an error | `rmt_new_tx_channel()`, `rmt_enable()` or the encoder failed: `ESP_ERR_NOT_FOUND` (no free channel), a bad GPIO, no memory | Fix the configuration, or free a channel and call `Begin()` again |
+| `Show()` returns `ESP_ERR_INVALID_STATE` | The channel was never set up | Check `Begin()` |
+| `Show()` returns another `esp_err_t` | The RMT driver refused the transfer | Log it with `esp_err_to_name()`; the frame was not sent |
 | Wrong colours, all white, flicker | Timing, colour order or signal level, not a software error | [Troubleshooting](troubleshooting.md) |
 
 ## Send bytes directly
@@ -124,14 +132,17 @@ Each strip has its own RMT channel, so the number of strips is limited by the ch
 
 `ws2812::RmtTx` can also be used on its own: `TransmitWs2812()` sends bytes as they are with the WS2812B timing,
 `Transmit()` sends prepared symbols and `TransmitBytes()` takes your own 0 and 1 symbols. All three block until
-the transfer is done.
+the transfer is done, send no reset of their own, and return `ESP_ERR_INVALID_STATE` while `IsReady()` is false;
+`InitStatus()` holds the set-up error and `Init()` retries it.
 
 ## The C interface
 
-!!! warning "Do not use `ws2812_control.h` in new code"
-    The C functions `ws2812_control_init()`, `ws2812_write_leds()` and `ws2812_set_brightness()` drive one strip
-    sized by Kconfig. In this version `ws2812_write_leds()` passes its buffer of RMT symbols to a byte encoder, so
-    the strip receives the bytes of the symbols instead of the colours. Use `WS2812Strip`.
+The C functions `ws2812_control_init()`, `ws2812_write_leds()` and `ws2812_set_brightness()` drive one strip whose
+LED type, length and timing come from Kconfig. `struct led_state` holds one `0xRRGGBB` (or `0xWWRRGGBB`) value
+per LED; `ws2812_write_leds()` scales them by the brightness, sends them green first with the Kconfig timing,
+appends the 300 µs reset and blocks until done. It returns `ESP_ERR_INVALID_STATE` before
+`ws2812_control_init()`, which can be called once (a second call returns `ESP_ERR_INVALID_STATE`) and cleans up
+after itself when it fails. The `channel` argument is unused. Prefer `WS2812Strip` for more than one strip.
 
 ## Threads
 
