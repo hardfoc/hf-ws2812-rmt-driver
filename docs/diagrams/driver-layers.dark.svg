@@ -1,0 +1,74 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="970" viewBox="0 0 1200 970" role="img" aria-labelledby="driver-layers-title driver-layers-desc" font-family="Inter, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif">
+<title id="driver-layers-title">From pixels to pulses, on ESP-IDF</title>
+<desc id="driver-layers-desc">Layer diagram: your application drives the WS2812Animator effects or a WS2812Strip directly; the strip turns pixels into RMT symbols and hands them to ws2812::RmtTx, which calls the ESP-IDF RMT driver; the RMT peripheral drives one GPIO connected to the first LED of the WS2812 chain.</desc>
+<defs><marker id="fk-arrow-rail" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#6C7889"/></marker></defs>
+<rect x="0.5" y="0.5" width="1199" height="969" rx="16" fill="#0E131A" stroke="#283241"/>
+<text x="32" y="46.8" font-size="16" font-weight="700" letter-spacing="1.2" fill="#C7CBFF">ARCHITECTURE</text>
+<text x="32" y="85.6" font-size="32" font-weight="700" fill="#E8EDF3">From pixels to pulses, on ESP-IDF</text>
+<text x="32" y="115.4" font-size="18" fill="#9AA6B5">There is no port to write: the driver calls ESP-IDF's RMT driver directly, and the RMT peripheral times every bit.</text>
+<rect x="32" y="131.4" width="1136" height="1" fill="#252F3C"/>
+<rect x="32" y="278.4" width="1136" height="89" rx="16" fill="#1C1F3D" stroke="#3B4080" stroke-width="1.2"/>
+<rect x="32" y="407.4" width="1136" height="89" rx="16" fill="#1C1F3D" stroke="#3B4080" stroke-width="1.2"/>
+<path d="M600 242.4 L600 274.4" fill="none" stroke="#6C7889" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#fk-arrow-rail)"/>
+<path d="M600 371.4 L600 403.4" fill="none" stroke="#6C7889" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#fk-arrow-rail)"/>
+<path d="M600 500.4 L600 532.4" fill="none" stroke="#6C7889" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#fk-arrow-rail)"/>
+<path d="M600 654.4 L600 686.4" fill="none" stroke="#6C7889" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#fk-arrow-rail)"/>
+<path d="M600 782.4 L600 814.4" fill="none" stroke="#6C7889" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#fk-arrow-rail)"/>
+<rect x="32" y="149.4" width="1136" height="89" rx="12" fill="#0F2A28" stroke="#2DD4BF" stroke-width="1.4"/>
+<rect x="32" y="157.4" width="4" height="73" rx="2" fill="#2DD4BF"/>
+<rect x="32" y="536.4" width="1136" height="114" rx="12" fill="#1C1F3D" stroke="#8C93FF" stroke-width="1.4"/>
+<rect x="32" y="544.4" width="4" height="98" rx="2" fill="#8C93FF"/>
+<rect x="32" y="690.4" width="1136" height="88" rx="12" fill="#151C26" stroke="#3A4657" stroke-width="1"/>
+<rect x="32" y="698.4" width="4" height="72" rx="2" fill="#94A3B8"/>
+<rect x="32" y="818.4" width="1136" height="89" rx="12" fill="#151C26" stroke="#3A4657" stroke-width="1"/>
+<rect x="32" y="826.4" width="4" height="73" rx="2" fill="#94A3B8"/>
+<text x="56" y="184.4" font-size="20" font-weight="700" fill="#A7F3E6">Your application</text>
+<text x="56" y="215" font-size="17" fill="#D2DAE4">status lights, a task that ticks an effect, a UI ...</text>
+<rect x="48" y="323.4" width="42.6" height="26" rx="13" fill="#1C1F3D" stroke="#3B4080" stroke-width="1"/>
+<text x="56" y="341.5" font-size="16" font-weight="700" fill="#C7CBFF">Off</text>
+<rect x="98.6" y="323.4" width="102.2" height="26" rx="13" fill="#1C1F3D" stroke="#3B4080" stroke-width="1"/>
+<text x="106.6" y="341.5" font-size="16" font-weight="700" fill="#C7CBFF">SolidColor</text>
+<rect x="208.8" y="323.4" width="87.7" height="26" rx="13" fill="#1C1F3D" stroke="#3B4080" stroke-width="1"/>
+<text x="216.8" y="341.5" font-size="16" font-weight="700" fill="#C7CBFF">Rainbow</text>
+<rect x="304.5" y="323.4" width="68.6" height="26" rx="13" fill="#1C1F3D" stroke="#3B4080" stroke-width="1"/>
+<text x="312.5" y="341.5" font-size="16" font-weight="700" fill="#C7CBFF">Chase</text>
+<rect x="381" y="323.4" width="56.8" height="26" rx="13" fill="#1C1F3D" stroke="#3B4080" stroke-width="1"/>
+<text x="389" y="341.5" font-size="16" font-weight="700" fill="#C7CBFF">Blink</text>
+<rect x="445.8" y="323.4" width="70.8" height="26" rx="13" fill="#1C1F3D" stroke="#3B4080" stroke-width="1"/>
+<text x="453.8" y="341.5" font-size="16" font-weight="700" fill="#C7CBFF">Breath</text>
+<rect x="524.7" y="323.4" width="72.8" height="26" rx="13" fill="#1C1F3D" stroke="#3B4080" stroke-width="1"/>
+<text x="532.7" y="341.5" font-size="16" font-weight="700" fill="#C7CBFF">Larson</text>
+<text x="48" y="307.4" font-size="17" font-weight="700" fill="#C7CBFF">EFFECTS (OPTIONAL)</text>
+<text x="252" y="307.4" font-size="16" fill="#C7CBFF">WS2812Animator, WS2812MultiAnimator; inc/ws2812_effects.hpp</text>
+<rect x="48" y="452.4" width="76" height="26" rx="13" fill="#1C1F3D" stroke="#3B4080" stroke-width="1"/>
+<text x="56" y="470.5" font-size="16" font-weight="700" fill="#C7CBFF">Begin()</text>
+<rect x="132" y="452.4" width="96.3" height="26" rx="13" fill="#1C1F3D" stroke="#3B4080" stroke-width="1"/>
+<text x="140" y="470.5" font-size="16" font-weight="700" fill="#C7CBFF">SetPixel()</text>
+<rect x="236.3" y="452.4" width="86.5" height="26" rx="13" fill="#1C1F3D" stroke="#3B4080" stroke-width="1"/>
+<text x="244.3" y="470.5" font-size="16" font-weight="700" fill="#C7CBFF">Length()</text>
+<rect x="330.8" y="452.4" width="75.3" height="26" rx="13" fill="#1C1F3D" stroke="#3B4080" stroke-width="1"/>
+<text x="338.8" y="470.5" font-size="16" font-weight="700" fill="#C7CBFF">Show()</text>
+<rect x="414.1" y="452.4" width="146.1" height="26" rx="13" fill="#1C1F3D" stroke="#3B4080" stroke-width="1"/>
+<text x="422.1" y="470.5" font-size="16" font-weight="700" fill="#C7CBFF">SetBrightness()</text>
+<rect x="568.2" y="452.4" width="135.1" height="26" rx="13" fill="#1C1F3D" stroke="#3B4080" stroke-width="1"/>
+<text x="576.2" y="470.5" font-size="16" font-weight="700" fill="#C7CBFF">SetNumLeds()</text>
+<rect x="711.2" y="452.4" width="123" height="26" rx="13" fill="#1C1F3D" stroke="#3B4080" stroke-width="1"/>
+<text x="719.2" y="470.5" font-size="16" font-weight="700" fill="#C7CBFF">SetTimings()</text>
+<rect x="842.2" y="452.4" width="126.6" height="26" rx="13" fill="#1C1F3D" stroke="#3B4080" stroke-width="1"/>
+<text x="850.2" y="470.5" font-size="16" font-weight="700" fill="#C7CBFF">ColorWheel()</text>
+<text x="48" y="436.4" font-size="17" font-weight="700" fill="#C7CBFF">WS2812STRIP</text>
+<text x="185.1" y="436.4" font-size="16" fill="#C7CBFF">pixel buffer, brightness, one RMT symbol per bit; inc/ws2812_cpp.hpp</text>
+<text x="56" y="571.4" font-size="20" font-weight="700" fill="#C7CBFF">ws2812::RmtTx</text>
+<text x="56" y="602" font-size="17" fill="#D2DAE4">one RMT transmit channel at 10 MHz (100 ns ticks), copy encoder, blocking transmit;</text>
+<text x="56" y="626.7" font-size="17" fill="#D2DAE4">inc/rmt_wrapper.hpp</text>
+<text x="56" y="725.4" font-size="20" font-weight="700" fill="#E8EDF3">ESP-IDF RMT driver</text>
+<text x="56" y="754.6" font-size="16" font-family="'JetBrains Mono', 'SFMono-Regular', Menlo, Consolas, monospace" fill="#D2DAE4">rmt_new_tx_channel()  rmt_enable()  rmt_new_copy_encoder()  rmt_transmit()  rmt_tx_wait_all_done()</text>
+<text x="56" y="853.4" font-size="20" font-weight="700" fill="#E8EDF3">RMT peripheral, GPIO, WS2812 chain</text>
+<text x="56" y="884" font-size="17" fill="#D2DAE4">one data line, 800 kbit/s NRZ, 24 bits per LED (32 for RGBW), latched by at least 50 µs of low</text>
+<rect x="32" y="919.8" width="14" height="14" rx="4" fill="#1C1F3D" stroke="#8C93FF" stroke-width="1.4"/>
+<text x="54" y="934.4" font-size="16" fill="#9AA6B5">this library</text>
+<rect x="161.8" y="919.8" width="14" height="14" rx="4" fill="#0F2A28" stroke="#2DD4BF" stroke-width="1.4"/>
+<text x="183.8" y="934.4" font-size="16" fill="#9AA6B5">you write</text>
+<rect x="282.1" y="919.8" width="14" height="14" rx="4" fill="#1B232E" stroke="#94A3B8" stroke-width="1.4"/>
+<text x="304.1" y="934.4" font-size="16" fill="#9AA6B5">ESP-IDF and hardware</text>
+</svg>

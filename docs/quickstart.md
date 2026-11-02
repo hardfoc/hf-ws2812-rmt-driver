@@ -1,138 +1,70 @@
-# Quick Start
+# Quickstart
 
-This guide will get you up and running with the WS2812 driver in just a few steps.
+Light a WS2812B strip from an ESP32: wire three signals, add the component, write one loop.
 
-## Prerequisites
+!!! note "ESP32 and ESP-IDF only"
+    The driver calls ESP-IDF's RMT driver directly. You need an ESP32-family chip with an RMT peripheral and
+    ESP-IDF v5.3 or later; CI builds the examples for the ESP32-C6 with ESP-IDF v5.5.
 
-- [Driver installed](installation.md)
-- [Hardware wired](hardware_setup.md)
-- ESP-IDF project configured
+## 1. Wire it
 
-## Minimal Example (C++)
+| ESP32 | Strip | Notes |
+| --- | --- | --- |
+| GPIO (GPIO8 in the example) | DIN of the first LED | Through a 3.3 V to 5 V level shifter; see below |
+| GND | GND (VSS) | One ground for the ESP32, the strip and its supply |
+| | 5 V (VDD) | From a supply sized for the strip: up to about 60 mA per LED at full white |
 
-Here's a complete working example using the C++ API:
+A WS2812B powered from 5 V needs at least 3.5 V (0.7 × VDD) on DIN to see a high. An ESP32 drives 3.3 V, which is
+below that: it often works on a short wire, but it is out of specification. A 74AHCT125 or 74HCT245 powered from
+5 V fixes it. [Hardware](hardware.md) has the pin table, the power budget and the protection parts.
 
-```cpp
-#include "ws2812_cpp.hpp"
-#include "ws2812_effects.hpp"
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
+## 2. Add the driver
 
-// Create strip: GPIO, RMT channel, LED count, LED type
-WS2812Strip strip(GPIO_NUM_18, 0, 30, LedType::RGB);
-WS2812Animator anim(strip);
+Add the repository as a submodule and copy the ESP-IDF component wrapper into your project's `components/`
+folder. [Installation](installation.md) has the details and the alternatives.
 
-void app_main(void) {
-    // Initialize the strip
-    strip.begin();
-    
-    // Set rainbow effect
-    anim.setEffect(WS2812Animator::Effect::Rainbow);
-    
-    // Update animation in loop
-    while (true) {
-        anim.tick();
-        vTaskDelay(pdMS_TO_TICKS(50));
-    }
-}
+```bash
+git submodule add https://github.com/hardfoc/hf-ws2812-rmt-driver.git external/hf-ws2812-rmt-driver
+cp -r external/hf-ws2812-rmt-driver/examples/esp32/components/hf_ws2812_rmt components/
 ```
 
-## Minimal Example (C API)
+Tell the wrapper where the driver is, in your top-level `CMakeLists.txt` before the `project.cmake` include, and
+add `hf_ws2812_rmt` to the `REQUIRES` of your `main` component:
 
-Here's the same example using the C API:
-
-```c
-#include "ws2812_control.h"
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
-
-void app_main(void) {
-    // Initialize RMT hardware
-    ws2812ControlInit(GPIO_NUM_18, 0);
-    
-    // Create LED state
-    struct led_state state = {0};
-    
-    // Set all LEDs to red
-    for (int i = 0; i < NUM_LEDS; i++) {
-        state.leds[i] = 0xFF0000; // RGB: Red
-    }
-    
-    // Send to LEDs
-    ws2812WriteLeds(state);
-}
+```cmake
+set(HF_WS2812_RMT_ROOT ${CMAKE_SOURCE_DIR}/external/hf-ws2812-rmt-driver CACHE PATH "WS2812 driver checkout")
 ```
 
-## Step-by-Step Explanation
+## 3. Light it
 
-### Step 1: Include Headers
-
-```cpp
-#include "ws2812_cpp.hpp"      // C++ API
-#include "ws2812_effects.hpp"  // Animation effects
+```cpp title="main.cpp"
+--8<-- "tests/docs/quickstart.cpp:quickstart"
 ```
 
-### Step 2: Create Strip Instance
+What each step does:
 
-```cpp
-WS2812Strip strip(GPIO_NUM_18, 0, 30, LedType::RGB);
-```
+1. The `WS2812Strip` constructor creates an RMT transmit channel on the GPIO at 10 MHz, so the four timing
+   arguments are in ticks of 100 ns: 4, 8, 9 and 5 give 400, 800, 900 and 500 ns, inside the WS2812B's ±150 ns
+   window. Pass them explicitly: the Kconfig defaults are not WS2812B timings ([Configuration](configuration.md)).
+2. `Grb()` packs a colour the way the strip sends it: the driver sends the packed value most significant byte
+   first, and a WS2812B expects green first.
+3. `SetPixel()` writes the buffer; nothing reaches the LEDs until `Show()`, which scales by the brightness, encodes
+   24 symbols per LED and blocks until the RMT has sent them.
 
-Parameters:
-- `GPIO_NUM_18`: GPIO pin connected to LED strip data line
-- `0`: RMT channel (0-7, or -1 for auto)
-- `30`: Number of LEDs in the strip
-- `LedType::RGB`: LED type (RGB or RGBW)
+The host CI compiles this example against the driver's headers, so it matches the current API.
 
-### Step 3: Initialize
+## If it does not work
 
-```cpp
-strip.begin();
-```
+| Symptom | First thing to check |
+| --- | --- |
+| Every LED white or full on | The timing arguments: ticks are 100 ns, so the Kconfig defaults (14, 52, 52, 52) are far too long |
+| Red and green swapped | Colour packing: a WS2812B wants `0xGGRRBB` |
+| Nothing lights | Ground shared with the strip, data into DIN (not DOUT), the GPIO number |
+| First LED flickers or shows random colours | Data level: add the level shifter, keep the data wire short |
+| Abort at start-up in `RmtTx` | No free RMT transmit channel, or an invalid GPIO ([Troubleshooting](troubleshooting.md)) |
 
-This initializes the RMT peripheral and prepares it for transmission.
+## Next
 
-### Step 4: Control LEDs
-
-**Set individual LED colors:**
-```cpp
-strip.setPixel(0, 0xFF0000);  // LED 0: Red
-strip.setPixel(1, 0x00FF00);  // LED 1: Green
-strip.setPixel(2, 0x0000FF);  // LED 2: Blue
-strip.show();                 // Send to strip
-```
-
-**Use animations:**
-```cpp
-WS2812Animator anim(strip);
-anim.setEffect(WS2812Animator::Effect::Rainbow);
-anim.tick();  // Call periodically to update
-```
-
-## Expected Output
-
-When running the rainbow example:
-- LEDs should display a moving rainbow pattern
-- Colors should smoothly transition
-- No error messages should appear
-
-## Troubleshooting
-
-If you encounter issues:
-
-- **No LEDs light up**: Check GPIO pin and wiring
-- **Wrong colors**: Verify LED type (RGB vs RGBW) matches configuration
-- **Timing issues**: Try adjusting timing parameters or pin task to Core 1
-- **See**: [Troubleshooting](troubleshooting.md) for common issues
-
-## Next Steps
-
-- Explore [Examples](examples.md) for more advanced usage
-- Review the [API Reference](api_reference.md) for all available methods
-- Check [Configuration](configuration.md) for customization options
-
----
-
-**Navigation**
-⬅️ [Installation](installation.md) | [Next: Hardware Setup ➡️](hardware_setup.md) | [Back to Index](index.md)
-
+- [API guide](api-guide.md): brightness, resizing, effects, several strips, errors.
+- [Signal timing](timing.md): how the ticks, frame time and reset gap work.
+- [Hardware](hardware.md): level shifting, power injection, protection parts.

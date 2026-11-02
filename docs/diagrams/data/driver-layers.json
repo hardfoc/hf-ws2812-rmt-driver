@@ -1,0 +1,33 @@
+{
+  "effects": [
+    "Off",
+    "SolidColor",
+    "Rainbow",
+    "Chase",
+    "Blink",
+    "Breath",
+    "Larson"
+  ],
+  "strip_methods": [
+    "Begin",
+    "SetPixel",
+    "Length",
+    "Show",
+    "SetBrightness",
+    "SetNumLeds",
+    "SetTimings",
+    "ColorWheel"
+  ],
+  "idf_calls": [
+    "rmt_new_tx_channel",
+    "rmt_enable",
+    "rmt_new_copy_encoder",
+    "rmt_transmit",
+    "rmt_tx_wait_all_done"
+  ],
+  "sources": [
+    "inc/ws2812_effects.hpp:WS2812Animator::Effect",
+    "inc/ws2812_cpp.hpp:WS2812Strip",
+    "inc/rmt_wrapper.hpp:ws2812::RmtTx"
+  ]
+}

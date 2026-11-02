@@ -1,129 +1,76 @@
 # Installation
 
-This guide covers how to integrate the WS2812 driver into your ESP-IDF project.
+Add the driver to an ESP-IDF project. It is an ESP-IDF component; it does not build without ESP-IDF.
 
-## Prerequisites
+## Requirements
 
-Before installing the driver, ensure you have:
+| Requirement | Value | Why |
+| --- | --- | --- |
+| Chip | An ESP32-family chip with an RMT peripheral | The driver transmits through the RMT |
+| ESP-IDF | v5.3 or later | The component requires `esp_driver_rmt`, which ESP-IDF split out in v5.3 |
+| C++ | C++20 (`-std=gnu++20`, set by the component) | |
+| Tested | ESP32-C6, ESP-IDF v5.5 | What the ESP32 examples CI builds |
 
-- **ESP-IDF**: Version 5.0 or later installed and configured
-- **ESP32 Target**: ESP32, ESP32-S2, ESP32-S3, ESP32-C3, or ESP32-C6
-- **Project Setup**: An existing ESP-IDF project
+The manifest [`idf_component.yml`](../idf_component.yml) lists the ESP32, ESP32-S2, ESP32-S3, ESP32-C3, ESP32-C6
+and ESP32-H2. All of them have an RMT peripheral, but only the ESP32-C6 is built in CI.
 
-## Integration Methods
+## Get the source
 
-### Option 1: ESP-IDF Component (Recommended)
+A git submodule keeps the driver pinned to a version you chose:
 
-1. **Add the component** to your project's `components/` directory:
-
-   ```bash
-   cd your-project
-   git clone https://github.com/hardfoc/hf-ws2812-rmt-driver.git components/hf-ws2812-rmt
-   ```
-
-   Or copy the entire driver directory into `components/hf-ws2812-rmt/`.
-
-2. **Configure via menuconfig**:
-
-   ```bash
-   idf.py menuconfig
-   ```
-
-   Navigate to: **Component Config** → **HF-ESP32-WS2812-RMT**
-
-   Configure:
-   - LED Type (RGB or RGBW)
-   - Number of LEDs
-   - GPIO pin
-   - RMT channel
-   - Timing parameters
-   - Default brightness
-
-3. **Include in your component's CMakeLists.txt**:
-
-   ```cmake
-   idf_component_register(
-       REQUIRES hf-ws2812-rmt
-       # ... other settings
-   )
-   ```
-
-### Option 2: Manual Integration
-
-1. **Copy source files** into your project:
-
-   ```
-   your-project/
-   ├── components/
-   │   └── hf-ws2812-rmt/
-   │       ├── inc/
-   │       │   ├── ws2812_control.h
-   │       │   ├── ws2812_cpp.hpp
-   │       │   ├── ws2812_effects.hpp
-   │       │   └── ...
-   │       ├── src/
-   │       │   ├── ws2812_control.c
-   │       │   ├── ws2812_cpp.cpp
-   │       │   └── ...
-   │       └── CMakeLists.txt
-   ```
-
-2. **Create CMakeLists.txt**:
-
-   ```cmake
-   idf_component_register(
-       SRCS "src/ws2812_control.c"
-            "src/ws2812_cpp.cpp"
-            "src/ws2812_effects.cpp"
-            "src/ws2812_multi_animator.cpp"
-            "src/led_strip_encoder.c"
-       INCLUDE_DIRS "inc"
-       REQUIRES driver
-   )
-   ```
-
-## Including Headers
-
-### C API
-
-```c
-#include "ws2812_control.h"
+```bash
+git submodule add https://github.com/hardfoc/hf-ws2812-rmt-driver.git external/hf-ws2812-rmt-driver
+git submodule update --init external/hf-ws2812-rmt-driver
 ```
 
-### C++ API
+Only `inc/`, `src/`, `cmake/`, `Kconfig` and `CMakeLists.txt` are needed to build. The examples have their own
+submodule (`examples/esp32/scripts`); you do not need it to use the driver.
+
+## ESP-IDF component
+
+=== "Component wrapper (recommended)"
+
+    The wrapper in [`examples/esp32/components/hf_ws2812_rmt/`](../examples/esp32/components/hf_ws2812_rmt/CMakeLists.txt)
+    is what the ESP32 examples and CI use. Copy the folder into your project's `components/` and tell it where the
+    driver is, in your project's top-level `CMakeLists.txt`, before `include($ENV{IDF_PATH}/...)`:
+
+    ```cmake
+    set(HF_WS2812_RMT_ROOT ${CMAKE_SOURCE_DIR}/external/hf-ws2812-rmt-driver CACHE PATH "WS2812 driver checkout")
+    ```
+
+    The wrapper stops with a clear message when the path is wrong. Your component then declares
+    `REQUIRES hf_ws2812_rmt`.
+
+=== "Repository as a component"
+
+    The repository's root [`CMakeLists.txt`](../CMakeLists.txt) registers an ESP-IDF component when
+    `ESP_PLATFORM` is set, with the root [`Kconfig`](../Kconfig). Clone or link the repository into
+    `components/` (or add its parent folder to `EXTRA_COMPONENT_DIRS`) and require it by its folder name. CI
+    does not build this path.
+
+Both register the same sources and the same Kconfig menu, **HF-ESP32-WS2812-RMT Configuration**
+([Configuration](configuration.md)), and require the ESP-IDF components `driver`, `freertos` and
+`esp_driver_rmt`.
+
+## How the build is organised
+
+| Layer | File | Role |
+| --- | --- | --- |
+| Settings | [`cmake/hf_ws2812_rmt_build_settings.cmake`](../cmake/hf_ws2812_rmt_build_settings.cmake) | Sources, include directories, ESP-IDF requirements, version: the single source of truth |
+| Root | [`CMakeLists.txt`](../CMakeLists.txt) | ESP-IDF component when `ESP_PLATFORM` is set; otherwise a static library for the host tests |
+| ESP-IDF | [`examples/esp32/components/hf_ws2812_rmt/CMakeLists.txt`](../examples/esp32/components/hf_ws2812_rmt/CMakeLists.txt) | Component wrapper over the same settings |
+
+Outside ESP-IDF the root `CMakeLists.txt` only builds with `HF_WS2812_RMT_BUILD_TESTS=ON`, which supplies stubs of
+the ESP-IDF headers ([Testing and CI](testing.md)). It is not a way to run the driver on a PC.
+
+The version is set once in the settings file and written into `ws2812_version.h` at configure time. Read it at
+run time:
 
 ```cpp
-#include "ws2812_cpp.hpp"        // Main C++ wrapper
-#include "ws2812_effects.hpp"    // Animation effects
-#include "ws2812_multi_animator.hpp"  // Multi-strip animations
+--8<-- "tests/docs/api_tasks.cpp:version"
 ```
 
-## Verification
+## Next
 
-To verify the installation:
-
-1. **Check compilation**:
-   ```bash
-   idf.py build
-   ```
-
-2. **Test include**:
-   ```c
-   #include "ws2812_control.h"
-   
-   void app_main(void) {
-       // If this compiles, installation is successful
-   }
-   ```
-
-## Next Steps
-
-- Follow the [Quick Start](quickstart.md) guide to create your first application
-- Review [Hardware Setup](hardware_setup.md) for wiring instructions
-- Check [Configuration](configuration.md) for customization options
-
----
-
-**Navigation**
-⬅️ [Back to Index](index.md) | [Next: Quick Start ➡️](quickstart.md)
-
+[Quickstart](quickstart.md) wires a strip and lights it; [Configuration](configuration.md) lists the Kconfig
+options and constructor arguments.

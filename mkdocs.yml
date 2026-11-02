@@ -10,7 +10,8 @@
 # Pages: docs/, order: docs/.nav.yml, rules: docs/DOCS-STYLE-GUIDE.md in hf-general-ci-tools.
 site_name: WS2812 RMT Driver
 site_description: >-
-  ESP32 RMT-based C++ driver for WS2812 / NeoPixel addressable RGB(W) LEDs, with animation effects and multi-strip coordination. ESP-IDF only.
+  C++ driver for WS2812 / WS2812B addressable LEDs (NeoPixels) on the ESP32 family: pixels, brightness, RGB and
+  RGBW over the RMT peripheral, with animation effects. ESP-IDF only.
 repo_url: https://github.com/hardfoc/hf-ws2812-rmt-driver
 
 theme:
