@@ -36,6 +36,15 @@ target_include_directories(${HF_WS2812_RMT_TARGET_NAME} PUBLIC ${HF_WS2812_RMT_P
 
 target_compile_features(${HF_WS2812_RMT_TARGET_NAME} PUBLIC cxx_std_20)
 
+# ── Host unit tests (ESP-IDF headers stubbed; no hardware) ───────────────────
+# The driver needs ESP-IDF. With the tests on, the library builds against the header stubs in tests/stubs/.
+option(HF_WS2812_RMT_BUILD_TESTS "Build the host unit tests in tests/" OFF)
+if(HF_WS2812_RMT_BUILD_TESTS)
+  target_include_directories(${HF_WS2812_RMT_TARGET_NAME} BEFORE PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/tests/stubs)
+  enable_testing()
+  add_subdirectory(tests)
+endif()
+
 # Optional warnings
 option(HF_WS2812_RMT_ENABLE_WARNINGS "Enable compiler warnings" OFF)
 if(HF_WS2812_RMT_ENABLE_WARNINGS)
