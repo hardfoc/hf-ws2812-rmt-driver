@@ -1,0 +1,23 @@
+# Documentation site on the HardFOC MkDocs platform: theme, plugin and toolchain come from the hardfoc-mkdocs-theme
+# package in hardfoc/hf-general-ci-tools. Preview locally:
+#
+#   pip install "git+https://github.com/hardfoc/hf-general-ci-tools@v1\
+#   #subdirectory=packages/hardfoc-mkdocs-theme"      (one line, without the backslash)
+#   mkdocs serve                                     http://127.0.0.1:8000
+#   mkdocs build --strict                            what CI runs
+#   hardfoc-docs figures && hardfoc-docs gen         refresh figures and generated tables
+#
+# Pages: docs/, order: docs/.nav.yml, rules: docs/DOCS-STYLE-GUIDE.md in hf-general-ci-tools.
+site_name: WS2812 RMT Driver
+site_description: >-
+  C++ driver for WS2812 / WS2812B addressable LEDs (NeoPixels) on the ESP32 family: pixels, brightness, RGB and
+  RGBW over the RMT peripheral, with animation effects. ESP-IDF only.
+repo_url: https://github.com/hardfoc/hf-ws2812-rmt-driver
+
+theme:
+  name: hardfoc
+
+plugins:
+  - hardfoc
+  - search
+  - awesome-nav

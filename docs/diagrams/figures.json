@@ -1,0 +1,15 @@
+{
+  "driver-layers": {
+    "title": "From pixels to pulses, on ESP-IDF",
+    "alt": "Layer diagram: your application drives the WS2812Animator effects or a WS2812Strip directly; the strip turns pixels into RMT symbols and hands them to ws2812::RmtTx, which calls the ESP-IDF RMT driver; the RMT peripheral drives one GPIO connected to the first LED of the WS2812 chain.",
+    "description": "From top to bottom. Your application, the only code you write, either runs an effect or sets pixels itself. The effects (WS2812Animator and WS2812MultiAnimator, the Effect values listed from inc/ws2812_effects.hpp) draw into a WS2812Strip. The strip (inc/ws2812_cpp.hpp, public methods listed) keeps the pixel buffer, applies the brightness and turns every bit into one RMT symbol with the configured high and low times. ws2812::RmtTx (inc/rmt_wrapper.hpp) owns one RMT transmit channel at 10 MHz and sends the symbols, blocking until they are out. Below it is ESP-IDF's RMT driver (the calls listed from rmt_wrapper.hpp) and the RMT peripheral, which times the pulses on the GPIO that feeds the first LED.",
+    "profile": "overview",
+    "width": 1200,
+    "source": "docs/diagrams/figures/driver-layers.py",
+    "sources": [
+      "inc/ws2812_effects.hpp:WS2812Animator::Effect",
+      "inc/ws2812_cpp.hpp:WS2812Strip",
+      "inc/rmt_wrapper.hpp:ws2812::RmtTx"
+    ]
+  }
+}

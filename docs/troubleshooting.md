@@ -1,285 +1,79 @@
----
-layout: default
-title: "🐛 Troubleshooting"
-description: "Common issues and solutions for the WS2812 driver"
-nav_order: 8
-parent: "📚 Documentation"
-permalink: /docs/troubleshooting/
----
-
 # Troubleshooting
 
-This guide helps you diagnose and resolve common issues when using the WS2812 driver.
+Symptoms you may see when bringing up a WS2812 strip with this driver, their causes and the fix for each.
 
-## Common Error Messages
+Start with the cheapest check: a common ground, data into DIN of the first LED, and the timing arguments.
+Most faults are one of those three.
 
-### Error: ESP_ERR_INVALID_ARG
+## Every LED is white, or full on in one colour
 
-**Symptoms:**
-- `begin()` or `ws2812ControlInit()` returns `ESP_ERR_INVALID_ARG`
-- Initialization fails
+**Cause.** The bit timing. `WS2812Strip` counts in ticks of 100 ns; with the Kconfig defaults (14, 52, 52, 52)
+every high pulse lasts at least 1.4 µs, and the LEDs read every bit as a 1.
 
-**Causes:**
-- Invalid GPIO number
-- Invalid RMT channel
-- GPIO not configured for output
+**Fix.** Pass WS2812B timing to the constructor (`4, 8, 9, 5`) or put it in `sdkconfig.defaults`
+([Configuration](configuration.md)).
 
-**Solutions:**
-1. **Check GPIO number**:
-   ```cpp
-   // Use valid GPIO (e.g., GPIO_NUM_18)
-   WS2812Strip strip(GPIO_NUM_18, 0, 30, LedType::RGB);
-   ```
+## Red and green are swapped
 
-2. **Check RMT channel**:
-   - ESP32: Channels 0-7
-   - ESP32-C6: Channels 0-3 only
-   - Use -1 for auto-selection
+**Cause.** Colour order. The driver sends the packed value most significant byte first; a WS2812B expects green,
+then red, then blue.
 
-3. **Verify GPIO configuration**: Ensure GPIO is not used by another peripheral
+**Fix.** Pack colours as `0xGGRRBB` ([Colour order](timing.md#colour-order)). The built-in effects and
+`ColorWheel()` pack `0xRRGGBB`, so their colours are swapped the same way.
 
----
+## Nothing lights
 
-### Error: ESP_ERR_NO_MEM
+| Check | How |
+| --- | --- |
+| Ground | The ESP32, the strip and the strip's supply share one ground |
+| Direction | Data goes into DIN of the first LED, not DOUT of the last |
+| Supply | 3.5 V to 5.3 V at the strip; measure at the far end under load |
+| GPIO | The pin passed to the constructor is the one wired; it is an output on your chip |
+| Brightness | Not 0, and not left at 0 by a `Breath` effect you stopped |
+| `Show()` | Called after `SetPixel()`, and its result is `ESP_OK` |
 
-**Symptoms:**
-- Initialization fails with out of memory error
+## The first LED flickers or shows random colours; the rest follow it
 
-**Causes:**
-- Too many LEDs configured
-- Insufficient RMT memory blocks
+**Cause.** The data level or the wire. A 3.3 V high is below the WS2812B's 3.5 V threshold at 5 V, and a long or
+unterminated data wire rings.
 
-**Solutions:**
-1. **Reduce LED count**: Lower `NUM_LEDS` in Kconfig
-2. **Check RMT memory**: Ensure other RMT channels aren't using all memory
+**Fix.** Add a 5 V buffer such as a 74AHCT125, keep the data wire short, and put a 300 Ω to 500 Ω resistor in
+series with DIN at the strip ([Hardware](hardware.md#logic-levels)).
 
----
+## The last LEDs keep old colours, or frames merge
 
-## Hardware Issues
+**Cause.** The reset gap. `Show()` does not send a reset pulse; the LEDs latch only after the line has been low
+for more than 50 µs. Two `Show()` calls in a tight loop may not leave that gap.
 
-### LEDs Not Lighting Up
+**Fix.** Delay at least 50 µs between frames; any animation tick does ([Signal timing](timing.md#the-reset-gap)).
 
-**Symptoms:**
-- No LEDs light up
-- Strip appears dead
+## Colours fade or shift towards the far end
 
-**Checklist:**
-- [ ] Verify power supply is connected and providing 5V
-- [ ] Check data line (DIN) is connected to correct GPIO
-- [ ] Verify ground connection (common ground required!)
-- [ ] Check power supply can provide enough current
-- [ ] Test with multimeter: power supply voltage
+**Cause.** Voltage drop along the strip at high current.
 
-**Solutions:**
-1. **Check wiring**:
-   - Data line to GPIO
-   - Power (5V) to VCC
-   - Ground to GND (must be common with ESP32!)
+**Fix.** Lower the brightness, or feed the supply in at both ends or every metre or so
+([Hardware](hardware.md#power)).
 
-2. **Test power supply**:
-   - Measure voltage at strip (should be ~5V)
-   - Check current capacity (60mA per LED at full brightness)
+## The program aborts when a strip is created
 
-3. **Verify first LED**:
-   - If first LED works but others don't, check data line continuity
+**Cause.** `ws2812::RmtTx` creates its channel with `ESP_ERROR_CHECK`: an RMT error aborts with a backtrace that
+names `rmt_new_tx_channel`, `rmt_enable` or `rmt_new_copy_encoder`. Usual reasons: no free transmit channel
+(each strip takes one, and on chips with 48-symbol blocks one strip can take two blocks), an invalid GPIO, or
+out of memory.
 
----
+**Fix.** Create fewer strips, check the GPIO, and see [Supported chips](porting.md#supported-chips) for the
+channel counts.
 
-### Wrong Colors
+## Glitches while Wi-Fi or other interrupts are busy
 
-**Symptoms:**
-- LEDs show wrong colors
-- Colors are shifted or incorrect
+**Cause.** The RMT channel has 64 symbols of memory and no DMA; ESP-IDF refills it from an interrupt during a
+frame. A late refill stretches a low period.
 
-**Causes:**
-- LED type mismatch (RGB vs RGBW)
-- Color order incorrect
-- Timing issues
+**Fix.** Keep strips short, send frames from a high-priority task, and avoid long critical sections while
+`Show()` runs ([Signal timing](timing.md#memory)).
 
-**Solutions:**
-1. **Check LED type**:
-   ```cpp
-   // Use correct type
-   WS2812Strip strip(GPIO_NUM_18, 0, 30, LedType::RGB);  // For RGB LEDs
-   WS2812Strip strip(GPIO_NUM_18, 0, 30, LedType::RGBW); // For RGBW LEDs
-   ```
+## The C functions in `ws2812_control.h` send garbage
 
-2. **Verify color format**:
-   - RGB: 0xRRGGBB (bytes: B, G, R in memory)
-   - RGBW: 0xRRGGBBWW
+**Cause.** A defect in this version: `ws2812_write_leds()` passes its RMT symbol buffer to a byte encoder.
 
-3. **Check Kconfig**: Ensure `WS2812_LED_TYPE` matches your LEDs
-
----
-
-### Flickering or Timing Issues
-
-**Symptoms:**
-- LEDs flicker
-- Colors are unstable
-- Timing errors
-
-**Causes:**
-- Wi-Fi interference
-- Long data line
-- Incorrect timing parameters
-- CPU frequency changes
-
-**Solutions:**
-1. **Pin task to Core 1** (if using Wi-Fi):
-   ```cpp
-   xTaskCreatePinnedToCore(ledTask, "led", 4096, nullptr, 5, nullptr, 1);
-   ```
-
-2. **Reduce data line length**: Keep data line short (< 1 meter)
-
-3. **Adjust timings**:
-   ```cpp
-   strip.setTimings(14, 52, 52, 52); // Try different values
-   ```
-
-4. **Add capacitor**: Place 1000µF capacitor across power supply
-
----
-
-### Only First LED Works
-
-**Symptoms:**
-- First LED lights up correctly
-- Remaining LEDs don't respond
-
-**Causes:**
-- Data line broken after first LED
-- Insufficient power for full strip
-- Timing issues
-
-**Solutions:**
-1. **Check data line continuity**: Test with multimeter
-2. **Verify power supply**: Ensure adequate current capacity
-3. **Check strip integrity**: Test individual LED segments
-
----
-
-## Software Issues
-
-### Compilation Errors
-
-**Error: "ws2812_control.h: No such file"**
-
-**Solution:**
-- Ensure component is in `components/` directory
-- Check `CMakeLists.txt` includes the component
-- Verify include paths
-
-**Error: "Undefined reference"**
-
-**Solution:**
-- Ensure source files are included in `CMakeLists.txt`
-- Check component is linked: `REQUIRES hf-ws2812-rmt`
-
----
-
-### Runtime Errors
-
-**Initialization Fails**
-
-**Checklist:**
-- [ ] GPIO is valid and available
-- [ ] RMT channel is available
-- [ ] Sufficient memory available
-- [ ] Kconfig settings are correct
-
-**LEDs Don't Update**
-
-**Checklist:**
-- [ ] `begin()` was called
-- [ ] `show()` is called after setting pixels
-- [ ] LED count matches configuration
-- [ ] Colors are set before `show()`
-
----
-
-## Debugging Tips
-
-### Enable Debug Output
-
-Add debug prints:
-
-```cpp
-esp_err_t ret = strip.begin();
-if (ret != ESP_OK) {
-    ESP_LOGE("WS2812", "begin() failed: %s", esp_err_to_name(ret));
-}
-```
-
-### Check RMT Status
-
-```cpp
-// Verify RMT channel is configured
-// Check ESP-IDF logs for RMT errors
-```
-
-### Test with Single LED
-
-```cpp
-// Start with one LED to verify basic functionality
-WS2812Strip strip(GPIO_NUM_18, 0, 1, LedType::RGB);
-strip.begin();
-strip.setPixel(0, 0xFF0000); // Red
-strip.show();
-```
-
----
-
-## FAQ
-
-### Q: Why do my LEDs flicker when Wi-Fi is active?
-
-**A:** Wi-Fi can interfere with RMT timing. Pin your LED task to Core 1:
-```cpp
-xTaskCreatePinnedToCore(ledTask, "led", 4096, nullptr, 5, nullptr, 1);
-```
-
-### Q: How many LEDs can I control?
-
-**A:** Depends on:
-- Available memory (each LED uses buffer space)
-- Power supply capacity (~60mA per LED)
-- Data line length (longer = more timing issues)
-
-Typically: 30-100 LEDs work well, 200+ may need power injection.
-
-### Q: Can I use 3.3V logic levels?
-
-**A:** For short strips (< 1 meter), 3.3V often works. For reliability, use a level shifter to 5V.
-
-### Q: Why are colors wrong?
-
-**A:** Common causes:
-1. LED type mismatch (RGB vs RGBW)
-2. Color byte order
-3. Timing issues
-
-Check Kconfig `WS2812_LED_TYPE` matches your LEDs.
-
----
-
-## Getting More Help
-
-If you're still experiencing issues:
-
-1. Check the [API Reference](api_reference.md) for method details
-2. Review [Examples](examples.md) for working code
-3. Search existing issues on GitHub
-4. Open a new issue with:
-   - Description of the problem
-   - Steps to reproduce
-   - Hardware setup details
-   - Error messages/logs
-   - Kconfig settings
-
----
-
-**Navigation**
-⬅️ [Examples](examples.md) | [Back to Index](index.md)
-
+**Fix.** Use `WS2812Strip` ([API guide](api-guide.md#the-c-interface)).

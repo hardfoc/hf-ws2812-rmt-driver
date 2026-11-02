@@ -1,162 +1,68 @@
----
-layout: default
-title: "⚙️ Configuration"
-description: "Configuration options for the WS2812 driver"
-nav_order: 4
-parent: "📚 Documentation"
-permalink: /docs/configuration/
----
-
 # Configuration
 
-This guide covers all configuration options available for the WS2812 driver.
+The Kconfig options and constructor arguments that set a strip's pin, length, LED type, timing and brightness.
 
-## Kconfig Configuration
+## Kconfig
 
-The driver is primarily configured via ESP-IDF's Kconfig system. Run `idf.py menuconfig` and navigate to **Component Config** → **HF-ESP32-WS2812-RMT**.
+The component adds the menu **HF-ESP32-WS2812-RMT Configuration** to `idf.py menuconfig`. Its values are the
+defaults of the `WS2812Strip` constructor and the fixed settings of the C interface.
 
-### Configuration Options
+| Option | Default | Meaning |
+| --- | --- | --- |
+| `CONFIG_WS2812_LED_TYPE_RGB` / `_RGBW` | RGB | 24 or 32 bits per LED |
+| `CONFIG_WS2812_NUM_LEDS` | 8 | Number of LEDs |
+| `CONFIG_WS2812_LED_RMT_TX_GPIO` | 18 | Data pin |
+| `CONFIG_WS2812_LED_RMT_TX_CHANNEL` | -1 | Ignored: ESP-IDF chooses the channel |
+| `CONFIG_WS2812_T0H` | 14 | 0 bit high time, in ticks |
+| `CONFIG_WS2812_T1H` | 52 | 1 bit high time, in ticks |
+| `CONFIG_WS2812_T0L` | 52 | 0 bit low time, in ticks |
+| `CONFIG_WS2812_T1L` | 52 | 1 bit low time, in ticks |
+| `CONFIG_WS2812_DEFAULT_BRIGHTNESS` | 255 | 0 to 255 |
 
-| Option | Default | Description |
-|--------|---------|-------------|
-| `WS2812_LED_TYPE` | RGB | LED type: RGB (24-bit) or RGBW (32-bit) |
-| `WS2812_NUM_LEDS` | 8 | Number of LEDs in the strip |
-| `WS2812_LED_RMT_TX_CHANNEL` | -1 | RMT channel (-1 for auto) |
-| `WS2812_LED_RMT_TX_GPIO` | 18 | GPIO pin for data output |
-| `WS2812_T0H` | 14 | 0-bit high time (RMT ticks) |
-| `WS2812_T1H` | 52 | 1-bit high time (RMT ticks) |
-| `WS2812_T0L` | 52 | 0-bit low time (RMT ticks) |
-| `WS2812_T1L` | 52 | 1-bit low time (RMT ticks) |
-| `WS2812_DEFAULT_BRIGHTNESS` | 255 | Default brightness (0-255) |
+Every option is the default of the matching `WS2812Strip` constructor argument. The LED type, count, timing and
+brightness are also the fixed settings of the C interface.
 
-**Location**: [`Kconfig`](../Kconfig)
+!!! warning "The default timing is not WS2812B timing"
+    `WS2812Strip` counts in ticks of 100 ns. The defaults 14, 52, 52 and 52 mean 1.4 µs and 5.2 µs, which a
+    WS2812B reads as all ones. Pass the timing to the constructor, as every example on this site does, or set the
+    options to the values below.
 
-## Runtime Configuration (C++ API)
+To make the defaults right for a WS2812B, put them in your project's `sdkconfig.defaults`:
 
-The C++ `WS2812Strip` class allows runtime configuration, overriding Kconfig defaults:
-
-### Constructor Parameters
-
-```cpp
-WS2812Strip strip(
-    GPIO_NUM_18,      // GPIO pin
-    0,                // RMT channel
-    30,               // Number of LEDs
-    LedType::RGB,     // LED type
-    14, 52, 52, 52,   // t0h, t1h, t0l, t1l (timings)
-    255               // Brightness
-);
+```ini title="sdkconfig.defaults"
+CONFIG_WS2812_T0H=4
+CONFIG_WS2812_T1H=8
+CONFIG_WS2812_T0L=9
+CONFIG_WS2812_T1L=5
+CONFIG_WS2812_LED_RMT_TX_GPIO=8
+CONFIG_WS2812_NUM_LEDS=16
 ```
 
-### Setting Timings
-
-Adjust protocol timings for different LED variants:
+## Constructor arguments
 
 ```cpp
-strip.setTimings(14, 52, 52, 52); // t0h, t1h, t0l, t1l
+--8<-- "tests/docs/api_tasks.cpp:create"
 ```
 
-**Timing Values** (in RMT ticks, 1 tick ≈ 50ns):
-- **WS2812**: T0H=14, T1H=52, T0L=52, T1L=52
-- **WS2812B**: May need slight adjustments
-- **SK6812**: Different timing requirements
+| Argument | Default | Notes |
+| --- | --- | --- |
+| `gpio` (`gpio_num_t`) | `CONFIG_WS2812_LED_RMT_TX_GPIO` | Any output-capable GPIO |
+| `channel` (`int`) | `CONFIG_WS2812_LED_RMT_TX_CHANNEL` | Kept for compatibility; ignored |
+| `num_leds` (`uint32_t`) | `CONFIG_WS2812_NUM_LEDS` | Change later with `SetNumLeds()` |
+| `type` (`LedType`) | `RGB`, or `RGBW` when Kconfig selects it | `RGBW` sends 32 bits per LED, white first |
+| `t0h`, `t1h`, `t0l`, `t1l` (`uint16_t`) | `CONFIG_WS2812_T0H` ... | Ticks of 100 ns; change later with `SetTimings()` |
+| `brightness` (`uint8_t`) | `CONFIG_WS2812_DEFAULT_BRIGHTNESS` | Change later with `SetBrightness()` |
 
-### Setting Brightness
+## Timing values by LED
 
-```cpp
-strip.setBrightness(128); // 50% brightness (0-255)
-```
+| LED | `t0h, t1h, t0l, t1l` | Datasheet values (each ±150 ns) |
+| --- | --- | --- |
+| WS2812B | `4, 8, 9, 5` | [0.4, 0.8, 0.85, 0.45 µs](https://cdn-shop.adafruit.com/datasheets/WS2812B.pdf) |
+| WS2812 | `4, 7, 8, 6` | [0.35, 0.7, 0.8, 0.6 µs](https://cdn.sparkfun.com/datasheets/Components/LED/WS2812.pdf) |
+| Others (SK6812, WS2813, clones) | Round each time to 100 ns | Their own datasheet |
 
-## LED Types
+The WS2812B row also fits the WS2812's windows, so one setting covers both.
 
-### RGB (24-bit)
+## Next
 
-Each LED uses 3 bytes: Red, Green, Blue
-
-```cpp
-WS2812Strip strip(GPIO_NUM_18, 0, 30, LedType::RGB);
-strip.setPixel(0, 0xFF0000); // Red
-strip.setPixel(1, 0x00FF00); // Green
-strip.setPixel(2, 0x0000FF); // Blue
-```
-
-### RGBW (32-bit)
-
-Each LED uses 4 bytes: Red, Green, Blue, White
-
-```cpp
-WS2812Strip strip(GPIO_NUM_18, 0, 30, LedType::RGBW);
-strip.setPixel(0, 0xFF000000); // Red + White
-```
-
-## RMT Channel Selection
-
-- **Auto (-1)**: Driver selects first available channel
-- **Fixed (0-7)**: Use specific channel (ESP32-C6: 0-3 only)
-
-```cpp
-// Auto-select channel
-WS2812Strip strip(GPIO_NUM_18, -1, 30, LedType::RGB);
-
-// Use specific channel
-WS2812Strip strip(GPIO_NUM_18, 0, 30, LedType::RGB);
-```
-
-## Timing Configuration
-
-### Standard Timings
-
-Based on WS2812 datasheet (800 Kbps, 1.25μs bit time):
-
-| Parameter | Time | RMT Ticks (approx) |
-|-----------|------|-------------------|
-| T0H (0-bit high) | 0.35μs | 7 |
-| T0L (0-bit low) | 0.8μs | 16 |
-| T1H (1-bit high) | 0.7μs | 14 |
-| T1L (1-bit low) | 0.6μs | 12 |
-| RES (reset) | 50μs | 1000 |
-
-**Note**: Default values in Kconfig (14, 52, 52, 52) are tuned for reliability and may differ slightly from datasheet.
-
-### Custom Timings
-
-For different LED variants or fine-tuning:
-
-```cpp
-// Custom timings for specific LED variant
-strip.setTimings(7, 14, 16, 12); // WS2812 datasheet values
-```
-
-## Recommended Settings
-
-### For Small Strips (< 20 LEDs)
-
-```cpp
-WS2812Strip strip(GPIO_NUM_18, 0, 20, LedType::RGB);
-strip.setBrightness(255); // Full brightness OK
-```
-
-### For Large Strips (> 50 LEDs)
-
-```cpp
-WS2812Strip strip(GPIO_NUM_18, 0, 100, LedType::RGB);
-strip.setBrightness(128); // Reduce brightness to limit current
-```
-
-### For RGBW Strips
-
-```cpp
-WS2812Strip strip(GPIO_NUM_18, 0, 30, LedType::RGBW);
-// Use white channel for better color rendering
-```
-
-## Next Steps
-
-- See [Examples](examples.md) for configuration examples
-- Review [API Reference](api_reference.md) for all configuration methods
-
----
-
-**Navigation**
-⬅️ [Platform Integration](platform_integration.md) | [Next: API Reference ➡️](api_reference.md) | [Back to Index](index.md)
-
+[API guide](api-guide.md) uses these settings task by task; [Signal timing](timing.md) explains the ticks.
