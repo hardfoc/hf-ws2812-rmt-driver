@@ -18,6 +18,12 @@ All notable changes to this driver are listed here. The format follows
 - **`ws2812::RmtTx` and `WS2812Strip` no longer abort when the RMT channel cannot be created.**
   `WS2812Strip::Begin()` returns the error (and retries) instead of always `ESP_OK`; until it succeeds `Show()`
   returns `ESP_ERR_INVALID_STATE`. Check `Begin()` where you relied on the abort.
+- **`ws2812::RmtTx` transmit timeouts are milliseconds.** `Transmit()`, `TransmitBytes()` and `TransmitWs2812()`
+  take `int32_t timeout_ms` (default `RmtTx::kWaitForever`, -1), as `rmt_tx_wait_all_done()` does. They took a
+  `TickType_t` and passed it to that call unconverted, so a `pdMS_TO_TICKS()` timeout was read as milliseconds
+  (wrong by 10x at 100 Hz). Calls with no timeout, or with `portMAX_DELAY`, behave as before. An argument of type
+  `TickType_t` now selects a deprecated overload that converts ticks to milliseconds (`RmtTx::TicksToTimeoutMs()`);
+  pass milliseconds instead.
 - **`ws2812_control_init()`** returns `ESP_ERR_INVALID_STATE` when called a second time (it used to leak a
   channel), and `ws2812_write_leds()` before init returns `ESP_ERR_INVALID_STATE`.
 
@@ -30,6 +36,7 @@ All notable changes to this driver are listed here. The format follows
 - Each strip requests one RMT memory block of the target (`SOC_RMT_MEM_WORDS_PER_CHANNEL`: 48 symbols on S3, C3,
   C6, H2) instead of 64 symbols, which took two blocks there and left no memory for a second strip on the
   two-channel chips. Override with `WS2812_RMT_MEM_BLOCK_SYMBOLS`.
+- `ws2812_write_leds()` waits with -1 (forever) instead of `portMAX_DELAY` cast to the millisecond argument.
 - `ws2812_control_init()` releases the channel and encoder when a later step fails.
 - CMake: install rules for the library, headers and generated version header, an exported `hf::hf_ws2812_rmt`
   target and a package config that works after install (it included an uninstalled file); the project version
@@ -39,6 +46,8 @@ All notable changes to this driver are listed here. The format follows
 
 ### Added
 
+- `ws2812::RmtTx::kWaitForever` and `RmtTx::TicksToTimeoutMs()`; a host test checks the timeout each transmit
+  call hands to `rmt_tx_wait_all_done()`.
 - `ws2812::RmtTx::Init()`, `InitStatus()`, `IsReady()`; `WS2812Strip::kResetTimeUs`; `ws2812_rmt_caps.h`.
 - `led_strip_encoder_config_t` takes optional bit times and reset length (0 keeps the WS2812B defaults, now
   400/850/800/450 ns and 300 µs instead of 300/900/900/300 ns and 50 µs).
