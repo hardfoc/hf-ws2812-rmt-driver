@@ -1,0 +1,22 @@
+<map id="inc/led_strip_encoder.h" name="inc/led_strip_encoder.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="420,5,591,31"/>
+<area shape="rect" id="Node000002" href="$ws2812__control_8h.html" title="ESP&#45;IDF RMT backend for WS2812 / NeoPixel LED chains." alt="" coords="309,79,467,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="476,40,409,81,406,76,473,35"/>
+<area shape="rect" id="Node000009" href="$ws2812__control_8c.html" title=" " alt="" coords="426,152,585,177"/>
+<area shape="poly" id="edge10_Node000001_Node000009" title=" " alt="" coords="508,45,508,152,503,152,503,45"/>
+<area shape="rect" id="Node000010" href="$led__strip__encoder_8c.html" title=" " alt="" coords="543,79,713,104"/>
+<area shape="poly" id="edge9_Node000001_Node000010" title=" " alt="" coords="538,35,609,76,607,81,535,40"/>
+<area shape="rect" id="Node000003" href="$ws2812__cpp_8hpp.html" title="C++ wrapper for the HF&#45;WS2812 RMT LED driver." alt="" coords="249,152,402,177"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="371,116,337,154,333,150,367,113"/>
+<area shape="poly" id="edge8_Node000002_Node000009" title=" " alt="" coords="420,109,488,149,485,154,417,113"/>
+<area shape="rect" id="Node000004" href="$ws2812__effects_8hpp.html" title="LED animation effects for WS2812 strips." alt="" coords="145,225,319,251"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="301,188,249,227,246,223,298,183"/>
+<area shape="rect" id="Node000008" href="$ws2812__cpp_8cpp.html" title="WS2812Strip C++ wrapper implementation." alt="" coords="344,225,496,251"/>
+<area shape="poly" id="edge7_Node000003_Node000008" title=" " alt="" coords="353,183,406,223,403,227,350,188"/>
+<area shape="rect" id="Node000005" href="$ws2812__multi__animator_8hpp.html" title="Helper coordinating animations across multiple LED strips." alt="" coords="5,299,235,324"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="204,260,140,301,137,296,201,256"/>
+<area shape="rect" id="Node000007" href="$ws2812__effects_8cpp.html" title="LED animation effects implementation." alt="" coords="259,299,432,324"/>
+<area shape="poly" id="edge6_Node000004_Node000007" title=" " alt="" coords="264,256,328,296,325,301,261,260"/>
+<area shape="rect" id="Node000006" href="$ws2812__multi__animator_8cpp.html" title="Multi&#45;strip animation coordinator implementation." alt="" coords="6,372,234,397"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="123,338,123,372,117,372,117,338"/>
+</map>
