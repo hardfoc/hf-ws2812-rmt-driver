@@ -103,8 +103,7 @@ esp_err_t ws2812_write_leds(struct led_state new_state) {
   tx_cfg.loop_count = 0;
   ESP_RETURN_ON_ERROR(rmt_transmit(g_handle, g_encoder, g_led_bytes, sizeof(g_led_bytes), &tx_cfg),
                       TAG, "Failed to transmit LED data");
-  ESP_RETURN_ON_ERROR(rmt_tx_wait_all_done(g_handle, portMAX_DELAY), TAG,
-                      "Failed waiting for RMT done");
+  ESP_RETURN_ON_ERROR(rmt_tx_wait_all_done(g_handle, -1), TAG, "Failed waiting for RMT done");
   return ESP_OK;
 }
 
