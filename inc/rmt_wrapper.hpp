@@ -20,6 +20,7 @@
 #include <atomic>
 #include <cstddef>
 #include <cstdint>
+#include <type_traits>
 #include <utility>
 
 #include "esp_check.h"
@@ -52,6 +53,24 @@ class RmtTx {
 public:
   /** Channel memory requested by default, in symbols. */
   static constexpr size_t kDefaultMemSymbols = WS2812_RMT_MEM_BLOCK_SYMBOLS;
+
+  /** Transmit timeout that waits until the frame is out, as `rmt_tx_wait_all_done()` takes it. */
+  static constexpr int32_t kWaitForever = -1;
+
+  /**
+   * @brief Convert a FreeRTOS tick count to the millisecond timeout the transmit calls take.
+   *
+   * `portMAX_DELAY` becomes kWaitForever; other counts round down and saturate at INT32_MAX.
+   * Only the deprecated tick overloads use it.
+   */
+  static constexpr int32_t TicksToTimeoutMs(TickType_t ticks,
+                                            uint32_t tick_rate_hz = configTICK_RATE_HZ) {
+    if (ticks == portMAX_DELAY) {
+      return kWaitForever;
+    }
+    const uint64_t ms = static_cast<uint64_t>(ticks) * 1000U / tick_rate_hz;
+    return ms > static_cast<uint64_t>(INT32_MAX) ? INT32_MAX : static_cast<int32_t>(ms);
+  }
 
   /**
    * @brief Create a Transmit channel.
@@ -149,9 +168,12 @@ public:
   //-------------------------------------------------------------------------
   /**
    * @brief Transmit raw RMT symbols (blocking until done).
+   *
+   * @param timeout_ms  How long to wait for the frame to go out, in milliseconds; kWaitForever (-1)
+   *                    waits until it is done. Passed to `rmt_tx_wait_all_done()` as it is.
    */
   esp_err_t Transmit(const rmt_symbol_word_t* symbols, size_t count,
-                     TickType_t timeout = portMAX_DELAY) const {
+                     int32_t timeout_ms = kWaitForever) const {
     if (handle_ == nullptr) {
       return ESP_ERR_INVALID_STATE;
     }
@@ -161,18 +183,26 @@ public:
         rmt_transmit(handle_, copy_encoder_, symbols, count * sizeof(rmt_symbol_word_t), &tx_cfg);
     if (err != ESP_OK)
       return err;
-    return rmt_tx_wait_all_done(handle_, timeout);
+    return rmt_tx_wait_all_done(handle_, timeout_ms);
+  }
+
+  /** @deprecated The timeout is in milliseconds now: pass an `int32_t`, or kWaitForever. */
+  template <typename Ticks, std::enable_if_t<std::is_same_v<Ticks, TickType_t>, int> = 0>
+  [[deprecated("RmtTx timeouts are int32_t milliseconds (-1 = forever)")]] esp_err_t Transmit(
+      const rmt_symbol_word_t* symbols, size_t count, Ticks timeout) const {
+    return Transmit(symbols, count, TicksToTimeoutMs(timeout));
   }
 
   //-------------------------------------------------------------------------
   /**
    * @brief Transmit an arbitrary byte stream with custom bit timing.
    *
-   * @param bit0  Symbol encoding logic‑0 (LSB first by default).
-   * @param bit1  Symbol encoding logic‑1.
+   * @param bit0        Symbol encoding logic‑0 (LSB first by default).
+   * @param bit1        Symbol encoding logic‑1.
+   * @param timeout_ms  Wait for the frame in milliseconds; kWaitForever (-1) waits until done.
    */
   esp_err_t TransmitBytes(const uint8_t* data, size_t length, const rmt_symbol_word_t& bit0,
-                          const rmt_symbol_word_t& bit1, TickType_t timeout = portMAX_DELAY) {
+                          const rmt_symbol_word_t& bit1, int32_t timeout_ms = kWaitForever) {
     if (handle_ == nullptr) {
       return ESP_ERR_INVALID_STATE;
     }
@@ -188,17 +218,27 @@ public:
     tx_cfg.loop_count = 0;
     esp_err_t err = rmt_transmit(handle_, bytes_enc, data, length, &tx_cfg);
     if (err == ESP_OK)
-      err = rmt_tx_wait_all_done(handle_, timeout);
+      err = rmt_tx_wait_all_done(handle_, timeout_ms);
     rmt_del_encoder(bytes_enc);
     return err;
+  }
+
+  /** @deprecated The timeout is in milliseconds now: pass an `int32_t`, or kWaitForever. */
+  template <typename Ticks, std::enable_if_t<std::is_same_v<Ticks, TickType_t>, int> = 0>
+  [[deprecated("RmtTx timeouts are int32_t milliseconds (-1 = forever)")]] esp_err_t TransmitBytes(
+      const uint8_t* data, size_t length, const rmt_symbol_word_t& bit0,
+      const rmt_symbol_word_t& bit1, Ticks timeout) {
+    return TransmitBytes(data, length, bit0, bit1, TicksToTimeoutMs(timeout));
   }
 
   //-------------------------------------------------------------------------
   /**
    * @brief Helper dedicated to WS2812/NeoPixel @ 800 kHz.
    * Uses 10 MHz or faster resolution to achieve accurate timings.
+   *
+   * @param timeout_ms  Wait for the frame in milliseconds; kWaitForever (-1) waits until done.
    */
-  esp_err_t TransmitWs2812(const uint8_t* grb, size_t length, TickType_t timeout = portMAX_DELAY) {
+  esp_err_t TransmitWs2812(const uint8_t* grb, size_t length, int32_t timeout_ms = kWaitForever) {
     if (handle_ == nullptr) {
       return ESP_ERR_INVALID_STATE;
     }
@@ -213,8 +253,15 @@ public:
     tx_cfg.loop_count = 0;
     esp_err_t err = rmt_transmit(handle_, ws_encoder_, grb, length, &tx_cfg);
     if (err == ESP_OK)
-      err = rmt_tx_wait_all_done(handle_, timeout);
+      err = rmt_tx_wait_all_done(handle_, timeout_ms);
     return err;
+  }
+
+  /** @deprecated The timeout is in milliseconds now: pass an `int32_t`, or kWaitForever. */
+  template <typename Ticks, std::enable_if_t<std::is_same_v<Ticks, TickType_t>, int> = 0>
+  [[deprecated("RmtTx timeouts are int32_t milliseconds (-1 = forever)")]] esp_err_t TransmitWs2812(
+      const uint8_t* grb, size_t length, Ticks timeout) {
+    return TransmitWs2812(grb, length, TicksToTimeoutMs(timeout));
   }
 
   rmt_channel_handle_t Handle() const {

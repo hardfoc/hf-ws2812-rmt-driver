@@ -238,3 +238,54 @@ TEST_CASE("RmtTx reports its init status") {
   CHECK(tx.IsReady());
   CHECK_EQ(tx.InitStatus(), ESP_OK);
 }
+
+// rmt_tx_wait_all_done() takes milliseconds (-1 = forever). RmtTx used to take a TickType_t and
+// pass it through unconverted, so a pdMS_TO_TICKS() value was read as milliseconds.
+TEST_CASE("RmtTx transmit timeouts reach rmt_tx_wait_all_done() in milliseconds") {
+  fake_rmt::reset();
+  ws2812::RmtTx tx(GPIO_NUM_2);
+  const uint8_t grb[3] = {1, 2, 3};
+  const rmt_symbol_word_t sym[1] = {};
+
+  REQUIRE(tx.TransmitWs2812(grb, sizeof(grb)) == ESP_OK);
+  CHECK_EQ(fake_rmt::state().last_wait_timeout_ms, ws2812::RmtTx::kWaitForever);
+  CHECK_EQ(ws2812::RmtTx::kWaitForever, -1);
+
+  REQUIRE(tx.TransmitWs2812(grb, sizeof(grb), 25) == ESP_OK);
+  CHECK_EQ(fake_rmt::state().last_wait_timeout_ms, 25);
+  REQUIRE(tx.Transmit(sym, 1, 7) == ESP_OK);
+  CHECK_EQ(fake_rmt::state().last_wait_timeout_ms, 7);
+  REQUIRE(tx.TransmitBytes(grb, sizeof(grb), sym[0], sym[0], 0) == ESP_OK);
+  CHECK_EQ(fake_rmt::state().last_wait_timeout_ms, 0);
+  REQUIRE(tx.Transmit(sym, 1) == ESP_OK);
+  CHECK_EQ(fake_rmt::state().last_wait_timeout_ms, -1);
+}
+
+TEST_CASE("RmtTx::TicksToTimeoutMs converts ticks at the tick rate") {
+  CHECK_EQ(ws2812::RmtTx::TicksToTimeoutMs(portMAX_DELAY), -1);
+  CHECK_EQ(ws2812::RmtTx::TicksToTimeoutMs(0), 0);
+  CHECK_EQ(ws2812::RmtTx::TicksToTimeoutMs(5, 100), 50);                // 100 Hz: 10 ms per tick
+  CHECK_EQ(ws2812::RmtTx::TicksToTimeoutMs(5, 1000), 5);                // 1 kHz
+  CHECK_EQ(ws2812::RmtTx::TicksToTimeoutMs(0xFFFFFFFEU, 1), INT32_MAX); // saturates
+}
+
+#if defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#endif
+TEST_CASE("the deprecated TickType_t overloads convert ticks to milliseconds") {
+  fake_rmt::reset();
+  ws2812::RmtTx tx(GPIO_NUM_2);
+  const uint8_t grb[3] = {1, 2, 3};
+  const rmt_symbol_word_t sym[1] = {};
+  REQUIRE(tx.TransmitWs2812(grb, sizeof(grb), portMAX_DELAY) == ESP_OK);
+  CHECK_EQ(fake_rmt::state().last_wait_timeout_ms, -1);
+  const TickType_t ticks = pdMS_TO_TICKS(40);
+  REQUIRE(tx.Transmit(sym, 1, ticks) == ESP_OK);
+  CHECK_EQ(fake_rmt::state().last_wait_timeout_ms, ws2812::RmtTx::TicksToTimeoutMs(ticks));
+  REQUIRE(tx.TransmitBytes(grb, sizeof(grb), sym[0], sym[0], ticks) == ESP_OK);
+  CHECK_EQ(fake_rmt::state().last_wait_timeout_ms, 40);
+}
+#if defined(__GNUC__)
+#pragma GCC diagnostic pop
+#endif

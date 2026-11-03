@@ -41,6 +41,10 @@ bit time, not measured; `Show()` also spends CPU time building the symbols befor
 `Show()` blocks the calling task until the last symbol is out (`rmt_tx_wait_all_done()` with no timeout). Call it
 from a task that can afford the wait, never from an interrupt.
 
+The `ws2812::RmtTx` transmit calls take the same wait as `rmt_tx_wait_all_done()`: `timeout_ms` in milliseconds as
+an `int32_t`, with `RmtTx::kWaitForever` (-1, the default) to wait until the frame is out. The value does not depend
+on the FreeRTOS tick rate.
+
 ## Memory
 
 | Buffer | Bytes per LED |
