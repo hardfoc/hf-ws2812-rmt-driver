@@ -1078,7 +1078,7 @@
 </tr>
 </tbody>
 </table>
-<p>The manifest <a href="https://github.com/hardfoc/hf-ws2812-rmt-driver/blob/5dfcb12f2f1ca52b273fd146f6ef7af670677a26/idf_component.yml"><code>idf_component.yml</code></a> lists the ESP32, ESP32-S2, ESP32-S3, ESP32-C3, ESP32-C6
+<p>The manifest <a href="https://github.com/hardfoc/hf-ws2812-rmt-driver/blob/4fc7302de3a5df64eeea22814af45101a415b0e5/idf_component.yml"><code>idf_component.yml</code></a> lists the ESP32, ESP32-S2, ESP32-S3, ESP32-C3, ESP32-C6
 and ESP32-H2. All of them have an RMT peripheral, but only the ESP32-C6 is built in CI.</p>
 <h2 id="get-the-source">Get the source<a class="headerlink" href="#get-the-source" title="Permanent link">&para;</a></h2>
 <p>A git submodule keeps the driver pinned to a version you chose:</p>
@@ -1091,7 +1091,7 @@ submodule (<code>examples/esp32/scripts</code>); you do not need it to use the d
 <div class="tabbed-set tabbed-alternate" data-tabs="1:2"><input checked="checked" id="component-wrapper-recommended" name="__tabbed_1" type="radio" /><input id="repository-as-a-component" name="__tabbed_1" type="radio" /><div class="tabbed-labels"><label for="component-wrapper-recommended">Component wrapper (recommended)</label><label for="repository-as-a-component">Repository as a component</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">
-<p>The wrapper in <a href="https://github.com/hardfoc/hf-ws2812-rmt-driver/blob/5dfcb12f2f1ca52b273fd146f6ef7af670677a26/examples/esp32/components/hf_ws2812_rmt/CMakeLists.txt"><code>examples/esp32/components/hf_ws2812_rmt/</code></a>
+<p>The wrapper in <a href="https://github.com/hardfoc/hf-ws2812-rmt-driver/blob/4fc7302de3a5df64eeea22814af45101a415b0e5/examples/esp32/components/hf_ws2812_rmt/CMakeLists.txt"><code>examples/esp32/components/hf_ws2812_rmt/</code></a>
 is what the ESP32 examples and CI use. Copy the folder into your project's <code>components/</code> and tell it where the
 driver is, in your project's top-level <code>CMakeLists.txt</code>, before <code>include($ENV{IDF_PATH}/...)</code>:</p>
 <div class="language-cmake highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nb">set</span><span class="p">(</span><span class="s">HF_WS2812_RMT_ROOT</span><span class="w"> </span><span class="o">${</span><span class="nv">CMAKE_SOURCE_DIR</span><span class="o">}</span><span class="s">/external/hf-ws2812-rmt-driver</span><span class="w"> </span><span class="s">CACHE</span><span class="w"> </span><span class="s">PATH</span><span class="w"> </span><span class="s2">"WS2812 driver checkout"</span><span class="p">)</span>
@@ -1100,8 +1100,8 @@ driver is, in your project's top-level <code>CMakeLists.txt</code>, before <code
 <code>REQUIRES hf_ws2812_rmt</code>.</p>
 </div>
 <div class="tabbed-block">
-<p>The repository's root <a href="https://github.com/hardfoc/hf-ws2812-rmt-driver/blob/5dfcb12f2f1ca52b273fd146f6ef7af670677a26/CMakeLists.txt"><code>CMakeLists.txt</code></a> registers an ESP-IDF component when
-<code>ESP_PLATFORM</code> is set, with the root <a href="https://github.com/hardfoc/hf-ws2812-rmt-driver/blob/5dfcb12f2f1ca52b273fd146f6ef7af670677a26/Kconfig"><code>Kconfig</code></a>. Clone or link the repository into
+<p>The repository's root <a href="https://github.com/hardfoc/hf-ws2812-rmt-driver/blob/4fc7302de3a5df64eeea22814af45101a415b0e5/CMakeLists.txt"><code>CMakeLists.txt</code></a> registers an ESP-IDF component when
+<code>ESP_PLATFORM</code> is set, with the root <a href="https://github.com/hardfoc/hf-ws2812-rmt-driver/blob/4fc7302de3a5df64eeea22814af45101a415b0e5/Kconfig"><code>Kconfig</code></a>. Clone or link the repository into
 <code>components/</code> (or add its parent folder to <code>EXTRA_COMPONENT_DIRS</code>) and require it by its folder name. CI
 does not build this path.</p>
 </div>
@@ -1122,17 +1122,17 @@ does not build this path.</p>
 <tbody>
 <tr>
 <td>Settings</td>
-<td><a href="https://github.com/hardfoc/hf-ws2812-rmt-driver/blob/5dfcb12f2f1ca52b273fd146f6ef7af670677a26/cmake/hf_ws2812_rmt_build_settings.cmake"><code>cmake/hf_ws2812_rmt_build_settings.cmake</code></a></td>
+<td><a href="https://github.com/hardfoc/hf-ws2812-rmt-driver/blob/4fc7302de3a5df64eeea22814af45101a415b0e5/cmake/hf_ws2812_rmt_build_settings.cmake"><code>cmake/hf_ws2812_rmt_build_settings.cmake</code></a></td>
 <td>Sources, include directories, ESP-IDF requirements, version: the single source of truth</td>
 </tr>
 <tr>
 <td>Root</td>
-<td><a href="https://github.com/hardfoc/hf-ws2812-rmt-driver/blob/5dfcb12f2f1ca52b273fd146f6ef7af670677a26/CMakeLists.txt"><code>CMakeLists.txt</code></a></td>
+<td><a href="https://github.com/hardfoc/hf-ws2812-rmt-driver/blob/4fc7302de3a5df64eeea22814af45101a415b0e5/CMakeLists.txt"><code>CMakeLists.txt</code></a></td>
 <td>ESP-IDF component when <code>ESP_PLATFORM</code> is set; otherwise a static library for the host tests</td>
 </tr>
 <tr>
 <td>ESP-IDF</td>
-<td><a href="https://github.com/hardfoc/hf-ws2812-rmt-driver/blob/5dfcb12f2f1ca52b273fd146f6ef7af670677a26/examples/esp32/components/hf_ws2812_rmt/CMakeLists.txt"><code>examples/esp32/components/hf_ws2812_rmt/CMakeLists.txt</code></a></td>
+<td><a href="https://github.com/hardfoc/hf-ws2812-rmt-driver/blob/4fc7302de3a5df64eeea22814af45101a415b0e5/examples/esp32/components/hf_ws2812_rmt/CMakeLists.txt"><code>examples/esp32/components/hf_ws2812_rmt/CMakeLists.txt</code></a></td>
 <td>Component wrapper over the same settings</td>
 </tr>
 </tbody>

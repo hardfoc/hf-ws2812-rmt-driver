@@ -1027,7 +1027,7 @@ reaches the strip.</p>
 <details class="hf-figure-desc">
 <summary>Figure description and sources</summary>
 <p>From top to bottom. Your application, the only code you write, either runs an effect or sets pixels itself. The effects (WS2812Animator and WS2812MultiAnimator, the Effect values listed from inc/ws2812_effects.hpp) draw into a WS2812Strip. The strip (inc/ws2812_cpp.hpp, public methods listed) keeps the pixel buffer, applies the brightness and turns every bit into one RMT symbol with the configured high and low times. ws2812::RmtTx (inc/rmt_wrapper.hpp) owns one RMT transmit channel at 10 MHz and sends the symbols, blocking until they are out. Below it is ESP-IDF's RMT driver (the calls listed from rmt_wrapper.hpp) and the RMT peripheral, which times the pulses on the GPIO that feeds the first LED.</p>
-<p>Drawn from: <a href="https://github.com/hardfoc/hf-ws2812-rmt-driver/blob/5dfcb12f2f1ca52b273fd146f6ef7af670677a26/inc/ws2812_effects.hpp"><code>inc/ws2812_effects.hpp</code></a> <code>WS2812Animator::Effect</code>; <a href="https://github.com/hardfoc/hf-ws2812-rmt-driver/blob/5dfcb12f2f1ca52b273fd146f6ef7af670677a26/inc/ws2812_cpp.hpp"><code>inc/ws2812_cpp.hpp</code></a> <code>WS2812Strip</code>; <a href="https://github.com/hardfoc/hf-ws2812-rmt-driver/blob/5dfcb12f2f1ca52b273fd146f6ef7af670677a26/inc/rmt_wrapper.hpp"><code>inc/rmt_wrapper.hpp</code></a> <code>ws2812::RmtTx</code>; figure module <a href="https://github.com/hardfoc/hf-ws2812-rmt-driver/blob/5dfcb12f2f1ca52b273fd146f6ef7af670677a26/docs/diagrams/figures/driver-layers.py"><code>docs/diagrams/figures/driver-layers.py</code></a>.</p>
+<p>Drawn from: <a href="https://github.com/hardfoc/hf-ws2812-rmt-driver/blob/4fc7302de3a5df64eeea22814af45101a415b0e5/inc/ws2812_effects.hpp"><code>inc/ws2812_effects.hpp</code></a> <code>WS2812Animator::Effect</code>; <a href="https://github.com/hardfoc/hf-ws2812-rmt-driver/blob/4fc7302de3a5df64eeea22814af45101a415b0e5/inc/ws2812_cpp.hpp"><code>inc/ws2812_cpp.hpp</code></a> <code>WS2812Strip</code>; <a href="https://github.com/hardfoc/hf-ws2812-rmt-driver/blob/4fc7302de3a5df64eeea22814af45101a415b0e5/inc/rmt_wrapper.hpp"><code>inc/rmt_wrapper.hpp</code></a> <code>ws2812::RmtTx</code>; figure module <a href="https://github.com/hardfoc/hf-ws2812-rmt-driver/blob/4fc7302de3a5df64eeea22814af45101a415b0e5/docs/diagrams/figures/driver-layers.py"><code>docs/diagrams/figures/driver-layers.py</code></a>.</p>
 </details>
 <h2 id="the-layers">The layers<a class="headerlink" href="#the-layers" title="Permanent link">&para;</a></h2>
 <table>
@@ -1041,17 +1041,17 @@ reaches the strip.</p>
 <tbody>
 <tr>
 <td><strong>Effects</strong>: <code>WS2812Animator</code>, <code>WS2812MultiAnimator</code></td>
-<td><a href="https://github.com/hardfoc/hf-ws2812-rmt-driver/blob/5dfcb12f2f1ca52b273fd146f6ef7af670677a26/inc/ws2812_effects.hpp"><code>ws2812_effects.hpp</code></a>, <a href="https://github.com/hardfoc/hf-ws2812-rmt-driver/blob/5dfcb12f2f1ca52b273fd146f6ef7af670677a26/inc/ws2812_multi_animator.hpp"><code>ws2812_multi_animator.hpp</code></a></td>
+<td><a href="https://github.com/hardfoc/hf-ws2812-rmt-driver/blob/4fc7302de3a5df64eeea22814af45101a415b0e5/inc/ws2812_effects.hpp"><code>ws2812_effects.hpp</code></a>, <a href="https://github.com/hardfoc/hf-ws2812-rmt-driver/blob/4fc7302de3a5df64eeea22814af45101a415b0e5/inc/ws2812_multi_animator.hpp"><code>ws2812_multi_animator.hpp</code></a></td>
 <td>You want a new effect</td>
 </tr>
 <tr>
 <td><strong>Strip</strong>: <code>WS2812Strip</code></td>
-<td><a href="https://github.com/hardfoc/hf-ws2812-rmt-driver/blob/5dfcb12f2f1ca52b273fd146f6ef7af670677a26/inc/ws2812_cpp.hpp"><code>ws2812_cpp.hpp</code></a>, <a href="https://github.com/hardfoc/hf-ws2812-rmt-driver/blob/5dfcb12f2f1ca52b273fd146f6ef7af670677a26/src/ws2812_cpp.cpp"><code>ws2812_cpp.cpp</code></a></td>
+<td><a href="https://github.com/hardfoc/hf-ws2812-rmt-driver/blob/4fc7302de3a5df64eeea22814af45101a415b0e5/inc/ws2812_cpp.hpp"><code>ws2812_cpp.hpp</code></a>, <a href="https://github.com/hardfoc/hf-ws2812-rmt-driver/blob/4fc7302de3a5df64eeea22814af45101a415b0e5/src/ws2812_cpp.cpp"><code>ws2812_cpp.cpp</code></a></td>
 <td>Never, for a new board</td>
 </tr>
 <tr>
 <td><strong>RMT channel</strong>: <code>ws2812::RmtTx</code></td>
-<td><a href="https://github.com/hardfoc/hf-ws2812-rmt-driver/blob/5dfcb12f2f1ca52b273fd146f6ef7af670677a26/inc/rmt_wrapper.hpp"><code>rmt_wrapper.hpp</code></a></td>
+<td><a href="https://github.com/hardfoc/hf-ws2812-rmt-driver/blob/4fc7302de3a5df64eeea22814af45101a415b0e5/inc/rmt_wrapper.hpp"><code>rmt_wrapper.hpp</code></a></td>
 <td>Never</td>
 </tr>
 <tr>
@@ -1101,7 +1101,7 @@ memory from an interrupt.</p>
   it is created or resized; <code>Show()</code> does not allocate.</li>
 </ul>
 <h2 id="the-c-interface">The C interface<a class="headerlink" href="#the-c-interface" title="Permanent link">&para;</a></h2>
-<p><a href="https://github.com/hardfoc/hf-ws2812-rmt-driver/blob/5dfcb12f2f1ca52b273fd146f6ef7af670677a26/inc/ws2812_control.h"><code>inc/ws2812_control.h</code></a> is an older C interface for one strip whose length, LED type
+<p><a href="https://github.com/hardfoc/hf-ws2812-rmt-driver/blob/4fc7302de3a5df64eeea22814af45101a415b0e5/inc/ws2812_control.h"><code>inc/ws2812_control.h</code></a> is an older C interface for one strip whose length, LED type
 and timing are fixed by Kconfig. It does not share code with <code>WS2812Strip</code>: it sends pixel bytes through
 <code>led_strip_encoder.c</code>, which appends the reset (<a href="../api-guide/#the-c-interface">API guide</a>).</p>
 <h2 id="source-map">Source map<a class="headerlink" href="#source-map" title="Permanent link">&para;</a></h2>

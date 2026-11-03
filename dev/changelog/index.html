@@ -1101,6 +1101,12 @@ affected API.</p>
 <li><strong><code>ws2812::RmtTx</code> and <code>WS2812Strip</code> no longer abort when the RMT channel cannot be created.</strong>
   <code>WS2812Strip::Begin()</code> returns the error (and retries) instead of always <code>ESP_OK</code>; until it succeeds <code>Show()</code>
   returns <code>ESP_ERR_INVALID_STATE</code>. Check <code>Begin()</code> where you relied on the abort.</li>
+<li><strong><code>ws2812::RmtTx</code> transmit timeouts are milliseconds.</strong> <code>Transmit()</code>, <code>TransmitBytes()</code> and <code>TransmitWs2812()</code>
+  take <code>int32_t timeout_ms</code> (default <code>RmtTx::kWaitForever</code>, -1), as <code>rmt_tx_wait_all_done()</code> does. They took a
+  <code>TickType_t</code> and passed it to that call unconverted, so a <code>pdMS_TO_TICKS()</code> timeout was read as milliseconds
+  (wrong by 10x at 100 Hz). Calls with no timeout, or with <code>portMAX_DELAY</code>, behave as before. An argument of type
+  <code>TickType_t</code> now selects a deprecated overload that converts ticks to milliseconds (<code>RmtTx::TicksToTimeoutMs()</code>);
+  pass milliseconds instead.</li>
 <li><strong><code>ws2812_control_init()</code></strong> returns <code>ESP_ERR_INVALID_STATE</code> when called a second time (it used to leak a
   channel), and <code>ws2812_write_leds()</code> before init returns <code>ESP_ERR_INVALID_STATE</code>.</li>
 </ul>
@@ -1113,6 +1119,7 @@ affected API.</p>
 <li>Each strip requests one RMT memory block of the target (<code>SOC_RMT_MEM_WORDS_PER_CHANNEL</code>: 48 symbols on S3, C3,
   C6, H2) instead of 64 symbols, which took two blocks there and left no memory for a second strip on the
   two-channel chips. Override with <code>WS2812_RMT_MEM_BLOCK_SYMBOLS</code>.</li>
+<li><code>ws2812_write_leds()</code> waits with -1 (forever) instead of <code>portMAX_DELAY</code> cast to the millisecond argument.</li>
 <li><code>ws2812_control_init()</code> releases the channel and encoder when a later step fails.</li>
 <li>CMake: install rules for the library, headers and generated version header, an exported <code>hf::hf_ws2812_rmt</code>
   target and a package config that works after install (it included an uninstalled file); the project version
@@ -1122,6 +1129,8 @@ affected API.</p>
 </ul>
 <h3 id="added">Added<a class="headerlink" href="#added" title="Permanent link">&para;</a></h3>
 <ul>
+<li><code>ws2812::RmtTx::kWaitForever</code> and <code>RmtTx::TicksToTimeoutMs()</code>; a host test checks the timeout each transmit
+  call hands to <code>rmt_tx_wait_all_done()</code>.</li>
 <li><code>ws2812::RmtTx::Init()</code>, <code>InitStatus()</code>, <code>IsReady()</code>; <code>WS2812Strip::kResetTimeUs</code>; <code>ws2812_rmt_caps.h</code>.</li>
 <li><code>led_strip_encoder_config_t</code> takes optional bit times and reset length (0 keeps the WS2812B defaults, now
   400/850/800/450 ns and 300 µs instead of 300/900/900/300 ns and 50 µs).</li>

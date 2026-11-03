@@ -1074,7 +1074,7 @@
 <tr>
 <td><code>ws2812_comprehensive_test</code> <span class="twemoji" title="featured"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 17.27 18.18 21l-1.64-7.03L22 9.24l-7.19-.62L12 2 9.19 8.62 2 9.24l5.45 4.73L5.82 21z"/></svg></span></td>
 <td>Hardware test: channel set-up, colours (green first on the wire), brightness, an animation and a second strip</td>
-<td><a href="https://github.com/hardfoc/hf-ws2812-rmt-driver/blob/5dfcb12f2f1ca52b273fd146f6ef7af670677a26/examples/esp32/main/WS2812ComprehensiveTest.cpp"><code>WS2812ComprehensiveTest.cpp</code></a></td>
+<td><a href="https://github.com/hardfoc/hf-ws2812-rmt-driver/blob/4fc7302de3a5df64eeea22814af45101a415b0e5/examples/esp32/main/WS2812ComprehensiveTest.cpp"><code>WS2812ComprehensiveTest.cpp</code></a></td>
 <td>yes</td>
 </tr>
 </tbody>
@@ -1083,7 +1083,7 @@
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>./scripts/build_app.sh<span class="w"> </span>ws2812_comprehensive_test<span class="w"> </span>Release
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>./scripts/flash_app.sh<span class="w"> </span>flash_monitor<span class="w"> </span>ws2812_comprehensive_test<span class="w"> </span>Release
 </span></code></pre></div>
-<p>Source of this table: <a href="https://github.com/hardfoc/hf-ws2812-rmt-driver/blob/5dfcb12f2f1ca52b273fd146f6ef7af670677a26/examples/esp32/app_config.yml"><code>examples/esp32/app_config.yml</code></a>.</p>
+<p>Source of this table: <a href="https://github.com/hardfoc/hf-ws2812-rmt-driver/blob/4fc7302de3a5df64eeea22814af45101a415b0e5/examples/esp32/app_config.yml"><code>examples/esp32/app_config.yml</code></a>.</p>
 <!-- /generated -->
 
 <h2 id="set-up-once">Set up once<a class="headerlink" href="#set-up-once" title="Permanent link">&para;</a></h2>
@@ -1092,13 +1092,13 @@
 </span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>.<span class="w"> </span><span class="nv">$IDF_PATH</span>/export.sh<span class="w">                                 </span><span class="c1"># ESP-IDF v5.5</span>
 </span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>./scripts/build_app.sh<span class="w"> </span>list<span class="w">                           </span><span class="c1"># every app and build type</span>
 </span></code></pre></div>
-<p>The scripts read <a href="https://github.com/hardfoc/hf-ws2812-rmt-driver/blob/5dfcb12f2f1ca52b273fd146f6ef7af670677a26/examples/esp32/app_config.yml"><code>app_config.yml</code></a> (the same file this page's table comes
+<p>The scripts read <a href="https://github.com/hardfoc/hf-ws2812-rmt-driver/blob/4fc7302de3a5df64eeea22814af45101a415b0e5/examples/esp32/app_config.yml"><code>app_config.yml</code></a> (the same file this page's table comes
 from) and build each app as its own firmware image.</p>
 <h2 id="what-to-read">What to read<a class="headerlink" href="#what-to-read" title="Permanent link">&para;</a></h2>
 <p>The test application drives a WS2812B strip on GPIO8 (and briefly a second one on GPIO4) and checks every return
 code: <code>Begin()</code>, red, green, blue and white for a second each, a walking pixel, a brightness ramp, the rainbow
 animator, then a second strip next to the first. Pins, length and timing are in
-<a href="https://github.com/hardfoc/hf-ws2812-rmt-driver/blob/5dfcb12f2f1ca52b273fd146f6ef7af670677a26/examples/esp32/main/esp32_ws2812_test_config.hpp"><code>esp32_ws2812_test_config.hpp</code></a>. Other references:</p>
+<a href="https://github.com/hardfoc/hf-ws2812-rmt-driver/blob/4fc7302de3a5df64eeea22814af45101a415b0e5/examples/esp32/main/esp32_ws2812_test_config.hpp"><code>esp32_ws2812_test_config.hpp</code></a>. Other references:</p>
 <table>
 <thead>
 <tr>
@@ -1109,23 +1109,23 @@ animator, then a second strip next to the first. Pins, length and timing are in
 <tbody>
 <tr>
 <td>Light a strip with the fewest lines</td>
-<td><a href="https://github.com/hardfoc/hf-ws2812-rmt-driver/blob/5dfcb12f2f1ca52b273fd146f6ef7af670677a26/tests/docs/quickstart.cpp"><code>tests/docs/quickstart.cpp</code></a> (<a href="../quickstart/">Quickstart</a>)</td>
+<td><a href="https://github.com/hardfoc/hf-ws2812-rmt-driver/blob/4fc7302de3a5df64eeea22814af45101a415b0e5/tests/docs/quickstart.cpp"><code>tests/docs/quickstart.cpp</code></a> (<a href="../quickstart/">Quickstart</a>)</td>
 </tr>
 <tr>
 <td>Set pixels, dim, resize, animate, run two strips</td>
-<td><a href="https://github.com/hardfoc/hf-ws2812-rmt-driver/blob/5dfcb12f2f1ca52b273fd146f6ef7af670677a26/tests/docs/api_tasks.cpp"><code>tests/docs/api_tasks.cpp</code></a> (<a href="../api-guide/">API guide</a>)</td>
+<td><a href="https://github.com/hardfoc/hf-ws2812-rmt-driver/blob/4fc7302de3a5df64eeea22814af45101a415b0e5/tests/docs/api_tasks.cpp"><code>tests/docs/api_tasks.cpp</code></a> (<a href="../api-guide/">API guide</a>)</td>
 </tr>
 <tr>
 <td>See exactly which pulses <code>Show()</code> sends</td>
-<td><a href="https://github.com/hardfoc/hf-ws2812-rmt-driver/blob/5dfcb12f2f1ca52b273fd146f6ef7af670677a26/tests/test_strip.cpp"><code>tests/test_strip.cpp</code></a> (<a href="../testing/">Testing and CI</a>)</td>
+<td><a href="https://github.com/hardfoc/hf-ws2812-rmt-driver/blob/4fc7302de3a5df64eeea22814af45101a415b0e5/tests/test_strip.cpp"><code>tests/test_strip.cpp</code></a> (<a href="../testing/">Testing and CI</a>)</td>
 </tr>
 <tr>
 <td>See what each effect draws per <code>Tick()</code></td>
-<td><a href="https://github.com/hardfoc/hf-ws2812-rmt-driver/blob/5dfcb12f2f1ca52b273fd146f6ef7af670677a26/tests/test_effects.cpp"><code>tests/test_effects.cpp</code></a></td>
+<td><a href="https://github.com/hardfoc/hf-ws2812-rmt-driver/blob/4fc7302de3a5df64eeea22814af45101a415b0e5/tests/test_effects.cpp"><code>tests/test_effects.cpp</code></a></td>
 </tr>
 <tr>
 <td>Copy the ESP-IDF component wrapper</td>
-<td><a href="https://github.com/hardfoc/hf-ws2812-rmt-driver/blob/5dfcb12f2f1ca52b273fd146f6ef7af670677a26/examples/esp32/components/hf_ws2812_rmt/CMakeLists.txt"><code>examples/esp32/components/hf_ws2812_rmt/</code></a></td>
+<td><a href="https://github.com/hardfoc/hf-ws2812-rmt-driver/blob/4fc7302de3a5df64eeea22814af45101a415b0e5/examples/esp32/components/hf_ws2812_rmt/CMakeLists.txt"><code>examples/esp32/components/hf_ws2812_rmt/</code></a></td>
 </tr>
 </tbody>
 </table>

@@ -1096,6 +1096,9 @@ for a 0 and 800 / 500 ns for a 1, the same as the table.</p>
 bit time, not measured; <code>Show()</code> also spends CPU time building the symbols before the transfer starts.</p>
 <p><code>Show()</code> blocks the calling task until the last symbol is out (<code>rmt_tx_wait_all_done()</code> with no timeout). Call it
 from a task that can afford the wait, never from an interrupt.</p>
+<p>The <code>ws2812::RmtTx</code> transmit calls take the same wait as <code>rmt_tx_wait_all_done()</code>: <code>timeout_ms</code> in milliseconds as
+an <code>int32_t</code>, with <code>RmtTx::kWaitForever</code> (-1, the default) to wait until the frame is out. The value does not depend
+on the FreeRTOS tick rate.</p>
 <h2 id="memory">Memory<a class="headerlink" href="#memory" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
