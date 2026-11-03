@@ -15,6 +15,7 @@ struct State {
   int channels_created = 0;
   int channels_deleted = 0;
   int transmits = 0;
+  int last_wait_timeout_ms = 0; ///< timeout_ms of the last rmt_tx_wait_all_done().
   rmt_tx_channel_config_t last_tx_config{};
   /// Waveform of the last transmit: every symbol the encoder produced, in order (bytes encoders
   /// expanded to bit symbols, copy encoders as they are).

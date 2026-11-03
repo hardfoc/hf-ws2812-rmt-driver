@@ -180,7 +180,8 @@ esp_err_t rmt_transmit(rmt_channel_handle_t tx_channel, rmt_encoder_handle_t enc
   return ESP_FAIL;
 }
 
-esp_err_t rmt_tx_wait_all_done(rmt_channel_handle_t /*tx_channel*/, int /*timeout_ms*/) {
+esp_err_t rmt_tx_wait_all_done(rmt_channel_handle_t /*tx_channel*/, int timeout_ms) {
+  fake_rmt::state().last_wait_timeout_ms = timeout_ms;
   return ESP_OK;
 }
 
